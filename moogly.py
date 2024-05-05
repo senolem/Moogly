@@ -52,7 +52,7 @@ class ApplicationModal(discord.ui.Modal, title='Access application'):
             await interaction.response.send_message('Error: Invalid in-game name (format: Name LastName)', ephemeral=True)
             return
 
-        bot.db_cursor.execute("SELECT * FROM application_data WHERE user_id=?", interaction.user.id)
+        bot.db_cursor.execute("SELECT * FROM application_data WHERE user_id=?", (interaction.user.id,))
         existing_data = bot.db_cursor.fetchone()
         if existing_data:
             bot.db_cursor.execute("UPDATE application_data SET ingame_name=? WHERE user_id=?", (self.name.value, interaction.user.id))
@@ -80,7 +80,7 @@ class AdmissionMessage(discord.ui.View):
     @discord.ui.button(label='Approve', style=discord.ButtonStyle.green)
     async def approve_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         user_id = self.extract_user_id(interaction.message.content)
-        bot.db_cursor.execute("SELECT * FROM application_data WHERE user_id=?", user_id)
+        bot.db_cursor.execute("SELECT * FROM application_data WHERE user_id=?", (user_id,))
         application_data = bot.db_cursor.fetchone()
 
         if not application_data:
@@ -95,7 +95,7 @@ class AdmissionMessage(discord.ui.View):
             elif application_data['fc'] == 'Moon':
                 role = interaction.guild.get_role(bot.config["moon_role_id"])
 
-            bot.db_cursor.execute("DELETE FROM application_data WHERE user_id=?", user_id)
+            bot.db_cursor.execute("DELETE FROM application_data WHERE user_id=?", (user_id,))
             bot.db_conn.commit()
 
             await user.add_roles(role)
@@ -109,7 +109,7 @@ class AdmissionMessage(discord.ui.View):
     @discord.ui.button(label='Decline', style=discord.ButtonStyle.red)
     async def decline_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         user_id = self.extract_user_id(interaction.message.content)
-        bot.db_cursor.execute("SELECT * FROM application_data WHERE user_id=?", user_id)
+        bot.db_cursor.execute("SELECT * FROM application_data WHERE user_id=?", (user_id,))
         application_data = bot.db_cursor.fetchone()
 
         if not application_data:
@@ -119,7 +119,7 @@ class AdmissionMessage(discord.ui.View):
         user = bot.get_user(user_id)
 
         if user:
-            bot.db_cursor.execute("DELETE FROM application_data WHERE user_id=?", user_id)
+            bot.db_cursor.execute("DELETE FROM application_data WHERE user_id=?", (user_id,))
             bot.db_conn.commit()
 
             await interaction.response.send_message(f'Application for {user.mention} declined!', ephemeral=True)
@@ -132,7 +132,7 @@ class AdmissionMessage(discord.ui.View):
 class ApplicationMessage(discord.ui.View):
     @discord.ui.button(label='Seventh Haven', style=discord.ButtonStyle.blurple)
     async def seventh_haven_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        bot.db_cursor.execute("SELECT * FROM application_data WHERE user_id=?", interaction.user.id)
+        bot.db_cursor.execute("SELECT * FROM application_data WHERE user_id=?", (interaction.user.id,))
         existing_data = bot.db_cursor.fetchone()
 
         if not existing_data:
