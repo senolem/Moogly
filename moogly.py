@@ -178,7 +178,7 @@ async def application_delete(interaction: discord.Interaction, user: discord.Use
     if not isinstance(user, discord.User):
         await interaction.response.send_message('Error: invalid user argument, format: !application_delete <mention>')
         return
-    bot.db_cursor.execute("DELETE FROM application_data WHERE user_id=?", (user.id))
+    bot.db_cursor.execute("DELETE FROM application_data WHERE user_id=?", (user.id,))
     bot.db_conn.commit()
     await interaction.response.send_message(f'Application deleted for user {user.mention}.')
 
