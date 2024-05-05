@@ -58,7 +58,7 @@ class AdmissionMessage(discord.ui.View):
     async def approve_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         user_id = self.extract_user_id(interaction.message.content)
         if user_id not in bot.application_data:
-            await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
+            await interaction.response.send_message('Error: user_id not found in applications list!', ephemeral=True)
         else:
             application_data = bot.application_data.get(user_id)
             user = interaction.guild.get_member(user_id)
@@ -72,8 +72,9 @@ class AdmissionMessage(discord.ui.View):
                 await user.edit(nick=application_data['ingame_name'])
                 await interaction.message.delete()
                 await interaction.response.send_message(f'Application for {user.mention} approved!', ephemeral=True)
+                await user.send('Your application to get access to Seventh Haven server has been approved, you now have access to the server.')
             else:
-                await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
+                await interaction.response.send_message('Error: Failed to fetch user', ephemeral=True)
 
     @discord.ui.button(label='Decline', style=discord.ButtonStyle.red)
     async def decline_button(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -82,10 +83,10 @@ class AdmissionMessage(discord.ui.View):
 
         if user:
             await interaction.response.send_message(f'Application for {user.mention} declined!', ephemeral=True)
-            await user.send('Your application to get access to Seventh Haven server was declined, please try again.')
+            await user.send('Your application to get access to Seventh Haven server has been declined, please try again.')
             await interaction.message.delete()
         else:
-            await interaction.response.send_message('Oops! Something went wrong.', ephemeral=True)
+            await interaction.response.send_message('Error: Failed to fetch user', ephemeral=True)
 
 class ApplicationMessage(discord.ui.View):
     @discord.ui.button(label='Seventh Haven', style=discord.ButtonStyle.blurple)
@@ -94,7 +95,7 @@ class ApplicationMessage(discord.ui.View):
             bot.application_data[interaction.user.id] = {"fc": "Seventh Haven"}
             await interaction.response.send_modal(ApplicationModal())
         else:
-            await interaction.response.send_message('You already sent an application, please wait until an administrator approves it.', ephemeral=True)
+            await interaction.response.send_message('You already sent an application, please wait until an administrator reviews it.', ephemeral=True)
 
     @discord.ui.button(label='Moon', style=discord.ButtonStyle.green)
     async def moon_button(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -102,7 +103,7 @@ class ApplicationMessage(discord.ui.View):
             bot.application_data[interaction.user.id] = {"fc": "Moon"}
             await interaction.response.send_modal(ApplicationModal())
         else:
-            await interaction.response.send_message('You already sent an application, please wait until an administrator approves it.', ephemeral=True)
+            await interaction.response.send_message('You already sent an application, please wait until an administrator reviews it.', ephemeral=True)
 
 def load_config():
     with open('config.json', 'r') as f:
@@ -113,7 +114,6 @@ bot = BotClient(load_config())
 @bot.command()
 async def application_form_message(interaction: discord.Interaction):
     await interaction.channel.send('Which FC are you member of?', view=ApplicationMessage())
-    await interaction.channel.send('Message added!')
 
 # Run the bot
 bot.run(bot.config["token"])
