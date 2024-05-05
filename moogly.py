@@ -68,6 +68,7 @@ class AdmissionMessage(discord.ui.View):
                     role = interaction.guild.get_role(bot.config["seventh_haven_role_id"])
                 elif application_data['fc'] == 'Moon':
                     role = interaction.guild.get_role(bot.config["moon_role_id"])
+                bot.application_data.pop(user_id)
                 await user.add_roles(role)
                 await user.edit(nick=application_data['ingame_name'])
                 await interaction.message.delete()
@@ -82,6 +83,7 @@ class AdmissionMessage(discord.ui.View):
         user = bot.get_user(user_id)
 
         if user:
+            bot.application_data.pop(user_id)
             await interaction.response.send_message(f'Application for {user.mention} declined!', ephemeral=True)
             await user.send('Your application to get access to Seventh Haven server has been declined, please try again.')
             await interaction.message.delete()
