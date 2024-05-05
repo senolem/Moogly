@@ -61,7 +61,7 @@ class ApplicationModal(discord.ui.Modal, title='Access application'):
         bot.db_conn.commit()
 
         application_channel = bot.get_channel(bot.config["admission_channel_id"])
-        message_content = f'New application from {interaction.user.mention} (ID: {interaction.user.id}):\nIn-game name: {self.name.value}\nFC: {existing_data["fc"]}'
+        message_content = f'New application from {interaction.user.mention} (ID: {interaction.user.id}):\nIn-game name: {self.name.value}\nFC: {existing_data[1]}'
         await application_channel.send(message_content, view=AdmissionMessage())
         await interaction.response.send_message(f'Application sent, awaiting approval...', ephemeral=True)
 
