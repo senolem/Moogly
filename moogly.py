@@ -42,6 +42,10 @@ class BotClient(commands.Bot):
 
 # UI Name modal
 class ApplicationModal(discord.ui.Modal, title='Access application'):
+    def __init__(self, fc: str, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fc = fc
+
     name = discord.ui.TextInput(
         label='What is your in-game name?',
         placeholder='Name LastName',
@@ -52,16 +56,11 @@ class ApplicationModal(discord.ui.Modal, title='Access application'):
             await interaction.response.send_message('Error: Invalid in-game name (format: Name LastName)', ephemeral=True)
             return
 
-        bot.db_cursor.execute("SELECT * FROM application_data WHERE user_id=?", (interaction.user.id,))
-        existing_data = bot.db_cursor.fetchone()
-        if existing_data:
-            bot.db_cursor.execute("UPDATE application_data SET ingame_name=? WHERE user_id=?", (self.name.value, interaction.user.id))
-        else:
-            bot.db_cursor.execute("INSERT INTO application_data (user_id, ingame_name) VALUES (?, ?)", (interaction.user.id, self.name.value))
+        bot.db_cursor.execute("INSERT INTO application_data (user_id, fc, ingame_name) VALUES (?, ?, ?)", (interaction.user.id, self.fc, self.name.value))
         bot.db_conn.commit()
 
         application_channel = bot.get_channel(bot.config["admission_channel_id"])
-        message_content = f'New application from {interaction.user.mention} (ID: {interaction.user.id}):\nIn-game name: {self.name.value}\nFC: {existing_data[1]}'
+        message_content = f'New application from {interaction.user.mention} (ID: {interaction.user.id}):\nIn-game name: {self.name.value}\nFC: {self.fc}'
         await application_channel.send(message_content, view=AdmissionMessage())
         await interaction.response.send_message(f'Application sent, awaiting approval...', ephemeral=True)
 
@@ -145,9 +144,7 @@ class ApplicationMessage(discord.ui.View):
         existing_data = bot.db_cursor.fetchone()
 
         if not existing_data:
-            bot.db_cursor.execute("INSERT INTO application_data (user_id, fc) VALUES (?, ?)", (interaction.user.id, "Seventh Haven"))
-            bot.db_conn.commit()
-            await interaction.response.send_modal(ApplicationModal())
+            await interaction.response.send_modal(ApplicationModal('Seventh Haven'))
         else:
             await interaction.response.send_message('You already sent an application, please wait until an administrator reviews it.', ephemeral=True)
 
@@ -157,9 +154,7 @@ class ApplicationMessage(discord.ui.View):
         existing_data = bot.db_cursor.fetchone()
 
         if not existing_data:
-            bot.db_cursor.execute("INSERT INTO application_data (user_id, fc) VALUES (?, ?)", (interaction.user.id, "Moon"))
-            bot.db_conn.commit()
-            await interaction.response.send_modal(ApplicationModal())
+            await interaction.response.send_modal(ApplicationModal('Moon'))
         else:
             await interaction.response.send_message('You already sent an application, please wait until an administrator reviews it.', ephemeral=True)
 
