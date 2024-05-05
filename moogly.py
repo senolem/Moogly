@@ -69,6 +69,15 @@ class ApplicationModal(discord.ui.Modal, title='Access application'):
         await interaction.response.send_message('Oops! Something went wrong. Please try again', ephemeral=True)
         traceback.print_exception(type(error), error, error.__traceback__) # Make sure we know what the error actually is
 
+    async def interaction_check(self, interaction: discord.Interaction[discord.Client]) -> bool:
+        if interaction.type == discord.InteractionType.application_command and interaction.data['name'] == 'close':
+            print(f'Modal closed by {interaction.user.id}, deleting application...')
+            bot.db_cursor.execute("DELETE FROM application_data WHERE user_id=?", (interaction.user.id,))
+            bot.db_conn.commit()
+            await interaction.message.delete()
+
+        return await super().interaction_check(interaction)
+
 # Approve/Deny view
 class AdmissionMessage(discord.ui.View):
     def extract_user_id(self, message_content: str) -> int:
