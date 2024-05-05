@@ -170,7 +170,7 @@ async def application_form(interaction: discord.Interaction):
 async def application_clear(interaction: discord.Interaction):
     bot.db_cursor.execute("DELETE FROM application_data")
     bot.db_conn.commit()
-    await interaction.response.send_message('All applications cleared.')
+    await interaction.channel.send('All applications cleared.')
 
 # Delete a specific application | !application_delete <mention>
 @bot.command()
@@ -180,7 +180,7 @@ async def application_delete(interaction: discord.Interaction, user: discord.Use
         return
     bot.db_cursor.execute("DELETE FROM application_data WHERE user_id=?", (user.id,))
     bot.db_conn.commit()
-    await interaction.response.send_message(f'Application deleted for user {user.mention}.')
+    await interaction.channel.send(f'Application deleted for user {user.mention}.')
 
 # Run the bot
 bot.run(bot.config["token"])
