@@ -17,7 +17,7 @@ class BotClient(commands.Bot):
         )
 
         # Connect to SQLite database
-        self.db_conn = sqlite3.connect(config.database)
+        self.db_conn = sqlite3.connect(config["prefix"])
         self.db_cursor = self.db_conn.cursor()
 
         # Initialize database tables if not exist
