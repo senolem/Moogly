@@ -98,16 +98,16 @@ class AdmissionMessage(discord.ui.View):
         user = interaction.guild.get_member(user_id)
 
         if user:
-            if application_data['fc'] == 'Seventh Haven':
+            if application_data[1] == 'Seventh Haven':
                 role = interaction.guild.get_role(bot.config["seventh_haven_role_id"])
-            elif application_data['fc'] == 'Moon':
+            elif application_data[1] == 'Moon':
                 role = interaction.guild.get_role(bot.config["moon_role_id"])
 
             bot.db_cursor.execute("DELETE FROM application_data WHERE user_id=?", (user_id,))
             bot.db_conn.commit()
 
             await user.add_roles(role)
-            await user.edit(nick=application_data['ingame_name'])
+            await user.edit(nick=application_data[2])
             await interaction.message.delete()
             await interaction.response.send_message(f'Application for {user.mention} approved!', ephemeral=True)
             await user.send('Your application to get access to Seventh Haven server has been approved, you now have access to the server.')
