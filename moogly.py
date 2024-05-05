@@ -150,7 +150,7 @@ class ApplicationMessage(discord.ui.View):
 
     @discord.ui.button(label='Moon', style=discord.ButtonStyle.green)
     async def moon_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        bot.db_cursor.execute("SELECT * FROM application_data WHERE user_id=?", interaction.user.id)
+        bot.db_cursor.execute("SELECT * FROM application_data WHERE user_id=?", (interaction.user.id,))
         existing_data = bot.db_cursor.fetchone()
 
         if not existing_data:
