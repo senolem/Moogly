@@ -26,9 +26,9 @@ class BotClient(commands.Bot):
         )
         
     async def setup_hook(self):
-        self.add_view(AdmissionMessage())
+        self.add_view(AdmissionMessage)
         print('Registered persistent view: AdmissionMessage')
-        self.add_view(ApplicationMessage())
+        self.add_view(ApplicationMessage)
         print('Registered persistent view: ApplicationMessage')
         return await super().setup_hook()
 
