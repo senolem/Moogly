@@ -99,9 +99,9 @@ class AdmissionMessage(discord.ui.View(timeout=None)):
         user = interaction.guild.get_member(user_id)
 
         if user:
-            if application['fc'] == 'Seventh Haven':
+            if application["fc"] == 'Seventh Haven':
                 role = interaction.guild.get_role(bot.config['seventh_haven_role_id'])
-            elif application['fc'] == 'Moon':
+            elif application["fc"] == 'Moon':
                 role = interaction.guild.get_role(bot.config['moon_role_id'])
 
             bot.db_cursor.execute('DELETE FROM applications WHERE user_id=?', (user_id,))
@@ -109,12 +109,12 @@ class AdmissionMessage(discord.ui.View(timeout=None)):
 
             try:
                 await user.add_roles(role)
-                await user.edit(nick=application['ingame_name'])
+                await user.edit(nick=application["ingame_name"])
             except discord.errors.Forbidden:
                 await bot.get_channel(bot.config['logs_channel_id']).send(f'Execution of application for {user.mention} failed, are you sure the user doesn\'t have a role above Moogly\'s role?', ephemeral=True)
             await interaction.message.delete()
             await interaction.response.send_message(f'Application for {user.mention} approved', ephemeral=True)
-            await bot.get_channel(bot.config['logs_channel_id']).send(f'Application from {user.mention} (ID: {user_id}) approved:\nIn-game name: {application['ingame_name']}\nFC: {application['fc']}')
+            await bot.get_channel(bot.config['logs_channel_id']).send(f'Application from {user.mention} (ID: {user_id}) approved:\nIn-game name: {application["ingame_name"]}\nFC: {application["fc"]}')
             await user.send('Your application to get access to Seventh Haven server has been approved, you now have access to the server.')
         else:
             await interaction.response.send_message('Error: Failed to fetch user', ephemeral=True)
@@ -136,7 +136,7 @@ class AdmissionMessage(discord.ui.View(timeout=None)):
             bot.db_conn.commit()
 
             await interaction.response.send_message(f'Application for {user.mention} declined', ephemeral=True)
-            await bot.get_channel(bot.config['logs_channel_id']).send(f'Application from {user.mention} (ID: {user_id}) declined:\nIn-game name: {application['ingame_name']}\nFC: {application['fc']}')
+            await bot.get_channel(bot.config['logs_channel_id']).send(f'Application from {user.mention} (ID: {user_id}) declined:\nIn-game name: {application["ingame_name"]}\nFC: {application["fc"]}')
             await user.send('Your application to get access to Seventh Haven server has been declined, please try again.')
             await interaction.message.delete()
         else:
