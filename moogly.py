@@ -116,7 +116,7 @@ class AdmissionMessage(discord.ui.View):
                 await user.add_roles(role)
                 await user.edit(nick=application[2])
             except discord.errors.Forbidden:
-                await bot.get_channel(bot.config['logs_channel_id']).send(f'Execution of application for {user.mention} failed, are you sure the user doesn\'t have a role above Moogly\'s role?', ephemeral=True)
+                await bot.get_channel(bot.config['logs_channel_id']).send(f'Execution of application for {user.mention} failed, are you sure the user doesn\'t have a role above Moogly\'s role?')
             await interaction.message.delete()
             await interaction.response.send_message(f'Application for {user.mention} approved', ephemeral=True)
             await bot.get_channel(bot.config['logs_channel_id']).send(f'Application from {user.mention} (ID: {user_id}) approved:\nIn-game name: {application[2]}\nFC: {application[1]}')
