@@ -84,7 +84,7 @@ class ApplicationModal(discord.ui.Modal, title='Access application'):
         traceback.print_exception(type(error), error, error.__traceback__) # Make sure we know what the error actually is
 
 # Approve/Deny view
-class AdmissionMessage(discord.ui.View()):
+class AdmissionMessage(discord.ui.View):
     def extract_user_id(self, message_content: str) -> int:
         start_index = message_content.find('(ID: ') + len('(ID: ')
         end_index = message_content.find(')', start_index)
