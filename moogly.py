@@ -3,6 +3,7 @@ from discord.ext import commands
 import json
 import sqlite3
 import traceback
+import os
 
 class BotClient(commands.Bot):
     def __init__(self, config):
@@ -10,7 +11,9 @@ class BotClient(commands.Bot):
         intents.members = True
         intents.message_content = True
 
-        self.db_conn = sqlite3.connect(config['database'])
+        dir = os.path.dirname(os.path.realpath(__file__))
+        db_path = os.path.join(dir, config['database'])
+        self.db_conn = sqlite3.connect(db_path)
         self.db_cursor = self.db_conn.cursor()
         self.db_conn.row_factory = sqlite3.Row
         self.create_tables()
@@ -45,7 +48,9 @@ class BotClient(commands.Bot):
 
 # Load config from config.json file
 def load_config():
-    with open('config.json', 'r') as f:
+    dir = os.path.dirname(os.path.realpath(__file__))
+    config_path = os.path.join(dir, 'config.json')
+    with open('config_path', 'r') as f:
         return json.load(f)
 
 bot = BotClient(load_config())
