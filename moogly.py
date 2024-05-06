@@ -107,8 +107,11 @@ class AdmissionMessage(discord.ui.View(timeout=None)):
             bot.db_cursor.execute('DELETE FROM applications WHERE user_id=?', (user_id,))
             bot.db_conn.commit()
 
-            await user.add_roles(role)
-            await user.edit(nick=application['ingame_name'])
+            try:
+                await user.add_roles(role)
+                await user.edit(nick=application['ingame_name'])
+            except discord.errors.Forbidden:
+                await bot.get_channel(bot.config['logs_channel_id']).send(f'Execution of application for {user.mention} failed, are you sure the user doesn\'t have a role above Moogly\'s role?', ephemeral=True)
             await interaction.message.delete()
             await interaction.response.send_message(f'Application for {user.mention} approved', ephemeral=True)
             await bot.get_channel(bot.config['logs_channel_id']).send(f'Application from {user.mention} (ID: {user_id}) approved:\nIn-game name: {application['ingame_name']}\nFC: {application['fc']}')
