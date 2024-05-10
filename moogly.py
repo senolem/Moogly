@@ -200,8 +200,9 @@ async def application_delete(interaction: discord.Interaction, user: discord.Use
     await interaction.channel.send(f'Application deleted for user {user.mention}.')
 
 @bot.command()
-async def translate_dyes_fr(interaction: discord.Interaction, arguments: str):
+async def translate_dyes_fr(interaction: discord.Interaction, *args):
     # Split the input arguments
+    arguments = ''.join(args)
     dyes = arguments.split('|')
     
     # Count occurrences of each translated dye name
