@@ -218,9 +218,8 @@ async def translate_dyes_fr(interaction: discord.Interaction, arguments: str):
     for translated_name, count in dye_counts.items():
         original_name = [entry["original_name"] for entry in bot.dyes_fr if entry["translated_name"] == translated_name][0]
         embed.add_field(name=f"{count}x {translated_name}", value=f"({original_name})", inline=False)
-    
-    await interaction.channel.send(embed)
 
+    await interaction.channel.send(embed=embed)
 
 # Run the bot
 bot.run(bot.config['token'])
