@@ -179,11 +179,13 @@ class ApplicationMessage(discord.ui.View):
 
 # Add application form to current channel | !application_form
 @bot.command()
+@commands.has_permissions(administrator=True)
 async def application_form(interaction: discord.Interaction):
     await interaction.channel.send('Which FC are you member of?', view=ApplicationMessage())
 
 # Clear all applications | !application_clear
 @bot.command()
+@commands.has_permissions(administrator=True)
 async def application_clear(interaction: discord.Interaction):
     bot.db_cursor.execute('DELETE FROM applications')
     bot.db_conn.commit()
@@ -191,6 +193,7 @@ async def application_clear(interaction: discord.Interaction):
 
 # Delete a specific application | !application_delete <mention>
 @bot.command()
+@commands.has_permissions(administrator=True)
 async def application_delete(interaction: discord.Interaction, user: discord.User):
     if not isinstance(user, discord.User):
         await interaction.response.send_message('Error: invalid user argument, format: !application_delete <mention>')
