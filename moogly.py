@@ -203,16 +203,13 @@ async def application_delete(interaction: discord.Interaction, user: discord.Use
 async def translate_dyes_fr(interaction: discord.Interaction, *args):
     # Split the input arguments
     arguments = ''.join(args)
-    print(arguments)
     dyes = arguments.split('|')
-    print(dyes)
     
     # Count occurrences of each translated dye name
     dye_counts = {}
     for dye_name in dyes:
-        print(dye_name)
         for dye_entry in bot.dyes_fr:
-            if dye_entry["original_name"] == dye_name:
+            if dye_entry["original_name"].replace(" ", "") == dye_name.strip():
                 translated_name = dye_entry["translated_name"]
                 dye_counts[translated_name] = dye_counts.get(translated_name, 0) + 1
                 break
