@@ -207,7 +207,9 @@ async def translate_dyes_fr(interaction: discord.Interaction, arguments: str):
     # Count occurrences of each translated dye name
     dye_counts = {}
     for dye_name in dyes:
+        print(dye_name)
         for dye_entry in bot.dyes_fr:
+            print(dye_entry["original_name"])
             if dye_entry["original_name"] == dye_name.strip():
                 translated_name = dye_entry["translated_name"]
                 dye_counts[translated_name] = dye_counts.get(translated_name, 0) + 1
