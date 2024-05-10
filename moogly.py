@@ -6,7 +6,7 @@ import traceback
 import os
 
 class BotClient(commands.Bot):
-    def __init__(self, config):
+    def __init__(self, config, dyes_fr):
         intents = discord.Intents.default()
         intents.members = True
         intents.message_content = True
@@ -18,6 +18,8 @@ class BotClient(commands.Bot):
         self.db_conn.row_factory = sqlite3.Row
         self.create_tables()
         self.config = config
+
+        self.dyes_fr = dyes_fr
         
         super().__init__(
             command_prefix=commands.when_mentioned_or(config['prefix']),
@@ -53,7 +55,13 @@ def load_config():
     with open(config_path, 'r') as f:
         return json.load(f)
 
-bot = BotClient(load_config())
+def load_dyes_fr():
+    dir = os.path.dirname(os.path.realpath(__file__))
+    config_path = os.path.join(dir, 'dyes_fr.json')
+    with open(config_path, 'r') as f:
+        return json.load(f)
+
+bot = BotClient(load_config(), load_dyes_fr())
 
 # UI Name modal
 class ApplicationModal(discord.ui.Modal, title='Access application'):
@@ -190,6 +198,29 @@ async def application_delete(interaction: discord.Interaction, user: discord.Use
     bot.db_cursor.execute('DELETE FROM applications WHERE user_id=?', (user.id,))
     bot.db_conn.commit()
     await interaction.channel.send(f'Application deleted for user {user.mention}.')
+
+@bot.command()
+async def translate_dyes_fr(interaction: discord.Interaction, arguments: str):
+    # Split the input arguments
+    dyes = arguments.split('|')
+    
+    # Count occurrences of each translated dye name
+    dye_counts = {}
+    for dye_name in dyes:
+        for dye_entry in bot.dyes_fr:
+            if dye_entry["original_name"] == dye_name.strip():
+                translated_name = dye_entry["translated_name"]
+                dye_counts[translated_name] = dye_counts.get(translated_name, 0) + 1
+                break
+    
+    # Create an embed to display the results
+    embed = discord.Embed(title="Translated dyes (french)", color=0x00ff00)
+    for translated_name, count in dye_counts.items():
+        original_name = [entry["original_name"] for entry in bot.dyes_fr if entry["translated_name"] == translated_name][0]
+        embed.add_field(name=f"{count}x {translated_name}", value=f"({original_name})", inline=False)
+    
+    await interaction.channel.send(embed)
+
 
 # Run the bot
 bot.run(bot.config['token'])
