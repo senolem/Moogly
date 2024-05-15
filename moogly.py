@@ -93,6 +93,14 @@ class ApplicationModal(discord.ui.Modal, title='Access application'):
 
 # Approve/Deny view
 class AdmissionMessage(discord.ui.View):
+    async def interaction_check(self, interaction: discord.Interaction[discord.Client]) -> bool:
+        member = interaction.guild.get_member(interaction.user.id)
+        if member.guild_permissions.administrator and bot.config['administrator_role_id'] in [role.id for role in member.roles]:
+            return True
+        else:
+            await interaction.response.send_message("You don't have permission to use this button.", ephemeral=True)
+            return False
+
     def extract_user_id(self, message_content: str) -> int:
         start_index = message_content.find('(ID: ') + len('(ID: ')
         end_index = message_content.find(')', start_index)
@@ -116,11 +124,13 @@ class AdmissionMessage(discord.ui.View):
                 role = interaction.guild.get_role(bot.config['seventh_haven_role_id'])
             elif application[1] == 'Moon':
                 role = interaction.guild.get_role(bot.config['moon_role_id'])
+            newcomer_role = interaction.guild.get_role(bot.config['newcomer_role_id'])
 
             bot.db_cursor.execute('DELETE FROM applications WHERE user_id=?', (user_id,))
             bot.db_conn.commit()
 
             try:
+                await user.remove_roles(newcomer_role)
                 await user.add_roles(role)
                 await user.edit(nick=application[2])
             except discord.errors.Forbidden:
@@ -157,6 +167,14 @@ class AdmissionMessage(discord.ui.View):
 
 # Send application view
 class ApplicationMessage(discord.ui.View):
+    async def interaction_check(self, interaction: discord.Interaction[discord.Client]) -> bool:
+        member = interaction.guild.get_member(interaction.user.id)
+        if bot.config['newcomer_role_id'] in [role.id for role in member.roles]:
+            return True
+        else:
+            await interaction.response.send_message("You don't have permission to use this button. Please contact an administrator.", ephemeral=True)
+            return False
+
     @discord.ui.button(label='Seventh Haven', style=discord.ButtonStyle.blurple, custom_id='ApplicationMessage:seventh_haven_button')
     async def seventh_haven_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         bot.db_cursor.execute('SELECT * FROM applications WHERE user_id=?', (interaction.user.id,))
@@ -180,12 +198,14 @@ class ApplicationMessage(discord.ui.View):
 # Add application form to current channel | !application_form
 @bot.command()
 @commands.has_permissions(administrator=True)
+@commands.has_role(bot.config['administrator_role_id'])
 async def application_form(interaction: discord.Interaction):
     await interaction.channel.send('Which FC are you member of?', view=ApplicationMessage())
 
 # Clear all applications | !application_clear
 @bot.command()
 @commands.has_permissions(administrator=True)
+@commands.has_role(bot.config['administrator_role_id'])
 async def application_clear(interaction: discord.Interaction):
     bot.db_cursor.execute('DELETE FROM applications')
     bot.db_conn.commit()
@@ -194,6 +214,7 @@ async def application_clear(interaction: discord.Interaction):
 # Delete a specific application | !application_delete <mention>
 @bot.command()
 @commands.has_permissions(administrator=True)
+@commands.has_role(bot.config['administrator_role_id'])
 async def application_delete(interaction: discord.Interaction, user: discord.User):
     if not isinstance(user, discord.User):
         await interaction.response.send_message('Error: invalid user argument, format: !application_delete <mention>')
