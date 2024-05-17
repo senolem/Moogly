@@ -241,7 +241,7 @@ async def application_delete(interaction: discord.Interaction, user: discord.Use
 @commands.has_role(bot.config['administrator_role_id'])
 @bot.command()
 async def get_guild_emojis(interaction: discord.Interaction):
-    emojis = [f"{emoji} :{emoji.name}: | {emoji.id}" for emoji in interaction.guild.emojis]
+    emojis = [f"{emoji} | {emoji.name} | {emoji.id}" for emoji in interaction.guild.emojis]
     if emojis:
         await interaction.channel.send("\n".join(emojis))
     else:
