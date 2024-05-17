@@ -177,7 +177,7 @@ class ApplicationMessage(discord.ui.View):
             await interaction.response.send_message("You don't have permission to use this button. Please contact an administrator.", ephemeral=True)
             return False
 
-    @discord.ui.button(label='Seventh Haven', style=discord.ButtonStyle.blurple, custom_id='ApplicationMessage:seventh_haven_button', emoji=':dove:')
+    @discord.ui.button(label='Seventh Haven', style=discord.ButtonStyle.blurple, custom_id='ApplicationMessage:seventh_haven_button', emoji='<:dove:>')
     async def seventh_haven_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         bot.db_cursor.execute('SELECT * FROM applications WHERE user_id=?', (interaction.user.id,))
         application = bot.db_cursor.fetchone()
@@ -187,7 +187,7 @@ class ApplicationMessage(discord.ui.View):
         else:
             await interaction.response.send_message('You already sent an application, please wait until an administrator reviews it.', ephemeral=True)
 
-    @discord.ui.button(label='Moon', style=discord.ButtonStyle.green, custom_id='ApplicationMessage:moon_button', emoji=':moon:')
+    @discord.ui.button(label='Moon', style=discord.ButtonStyle.green, custom_id='ApplicationMessage:moon_button', emoji='<:moon:>')
     async def moon_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         bot.db_cursor.execute('SELECT * FROM applications WHERE user_id=?', (interaction.user.id,))
         application = bot.db_cursor.fetchone()
@@ -197,7 +197,7 @@ class ApplicationMessage(discord.ui.View):
         else:
             await interaction.response.send_message('You already sent an application, please wait until an administrator reviews it.', ephemeral=True)
     
-    @discord.ui.button(label='ONE', style=discord.ButtonStyle.red, custom_id='ApplicationMessage:one_button', emoji=':one:')
+    @discord.ui.button(label='ONE', style=discord.ButtonStyle.red, custom_id='ApplicationMessage:one_button', emoji='<:one:>')
     async def one_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         bot.db_cursor.execute('SELECT * FROM applications WHERE user_id=?', (interaction.user.id,))
         application = bot.db_cursor.fetchone()
