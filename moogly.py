@@ -177,7 +177,7 @@ class ApplicationMessage(discord.ui.View):
             await interaction.response.send_message("You don't have permission to use this button. Please contact an administrator.", ephemeral=True)
             return False
 
-    @discord.ui.button(label='Seventh Haven', style=discord.ButtonStyle.blurple, custom_id='ApplicationMessage:seventh_haven_button', emoji=bot.config['seventhhaven_emoji_id'])
+    @discord.ui.button(label='Seventh Haven', style=discord.ButtonStyle.blurple, custom_id='ApplicationMessage:seventh_haven_button', emoji=bot.config['seventh_haven_emoji_id'])
     async def seventh_haven_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         bot.db_cursor.execute('SELECT * FROM applications WHERE user_id=?', (interaction.user.id,))
         application = bot.db_cursor.fetchone()
