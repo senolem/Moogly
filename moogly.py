@@ -236,6 +236,17 @@ async def application_delete(interaction: discord.Interaction, user: discord.Use
     bot.db_conn.commit()
     await interaction.channel.send(f'Application deleted for user {user.mention}.')
 
+# List guild's emojis ids
+@commands.has_permissions(administrator=True)
+@commands.has_role(bot.config['administrator_role_id'])
+@bot.command()
+async def get_guild_emojis(interaction: discord.Interaction):
+    emojis = [str(emoji.id) for emoji in interaction.guild]
+    if emojis:
+        await interaction.response("\n".join(emojis))
+    else:
+        await interaction.response("No emojis found in this server.")
+
 @bot.command()
 async def translate_dyes_fr(interaction: discord.Interaction, *args):
     # Split the input arguments
