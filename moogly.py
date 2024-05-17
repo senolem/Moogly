@@ -243,9 +243,9 @@ async def application_delete(interaction: discord.Interaction, user: discord.Use
 async def get_guild_emojis(interaction: discord.Interaction):
     emojis = [str(emoji.id) for emoji in interaction.guild.emojis]
     if emojis:
-        await interaction.response("\n".join(emojis))
+        await interaction.channel.send("\n".join(emojis))
     else:
-        await interaction.response("No emojis found in this server.")
+        await interaction.channel.send("No emojis found in this server.")
 
 @bot.command()
 async def translate_dyes_fr(interaction: discord.Interaction, *args):
