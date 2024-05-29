@@ -377,7 +377,7 @@ async def maps_list(interaction: discord.Interaction, message_id: int):
         return
 
     # Fetch joined users
-    joined_user_ids = maps_run['user_ids'].split(',')
+    joined_user_ids = maps_run[3].split(',')
     joined_users = [interaction.guild.get_member(int(user_id)).mention for user_id in joined_user_ids if user_id]
 
     # Create an embed with the joined users
