@@ -5,6 +5,7 @@ import sqlite3
 import traceback
 import os
 from mapsCog import MapsCog
+import datetime
 
 class BotClient(commands.Bot):
     def __init__(self, config, dyes_fr):
@@ -328,8 +329,11 @@ class MapRunView(discord.ui.View):
 @commands.has_permissions(administrator=True)
 @commands.has_role(bot.config['administrator_role_id'])
 async def maps_create(interaction: discord.Interaction, timestamp: str):
-    # Parse the Discord timestamp format and convert it to a datetime object
-    timestamp = discord.utils.parse_time(timestamp)
+    # Extract timestamp from the Discord format string
+    timestamp = int(timestamp.split(':')[1].split(':')[0])
+
+    # Convert the timestamp to a Python datetime object
+    timestamp_dt = datetime.utcfromtimestamp(timestamp)
 
     # Check if the timestamp is valid
     if timestamp is None:
