@@ -405,6 +405,10 @@ async def ping_task(self):
         # Extract timestamp and calculate ping time
         current_time = datetime.now()
         ping_time = maps_run[1] - timedelta(minutes=20)
+        time_until_ping = (ping_time - current_time).total_seconds() / 60  # Convert to minutes
+
+        # Debug message
+        print(f"Time until ping for maps run {maps_run[0]}: {time_until_ping} minutes")
 
         if current_time >= ping_time:
             # Fetch the joined users
