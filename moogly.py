@@ -22,6 +22,7 @@ class BotClient(commands.Bot):
 
         self.dyes_fr = dyes_fr
         
+        ping_task.start()
         super().__init__(
             command_prefix=commands.when_mentioned_or(config['prefix']),
             intents=intents,
@@ -50,7 +51,7 @@ class BotClient(commands.Bot):
         self.db_cursor.execute('''
         CREATE TABLE IF NOT EXISTS maps_runs (
             message_id INTEGER PRIMARY KEY,
-            timestamp TEXT,
+            timestamp TIMESTAMP,
             available_slots INTEGER DEFAULT 8,
             user_ids TEXT,
             pinged BOOLEAN DEFAULT 0
@@ -353,7 +354,7 @@ async def maps_create(interaction: discord.Interaction, timestamp: str):
     # Store the message info in the database
     bot.db_cursor.execute(
         'INSERT INTO maps_runs (message_id, timestamp, available_slots, user_ids, pinged) VALUES (?, ?, ?, ?, ?)',
-        (message.id, timestamp_str, 8, '', 0)
+        (message.id, timestamp_dt, 8, '', 0)
     )
     bot.db_conn.commit()
 
@@ -403,8 +404,8 @@ async def ping_task(self):
         
     for maps_run in maps_runs:
         # Extract timestamp and calculate ping time
-        timestamp = datetime.strptime(maps_run[1], '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
-        ping_time = timestamp - timedelta(minutes=20)
+        current_time = datetime.now()
+        ping_time = maps_run[1] - timedelta(minutes=20)
 
         if current_time >= ping_time:
             # Fetch the joined users
