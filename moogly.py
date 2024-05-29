@@ -362,14 +362,14 @@ async def maps_list(interaction: discord.Interaction, message_id: int):
     try:
         message = await channel.fetch_message(message_id)
     except discord.NotFound:
-        await interaction.response.send_message('Message not found.')
+        await interaction.channel.send('Message not found.')
         return
 
     # Check if the message is a map run message
     bot.db_cursor.execute('SELECT * FROM maps_runs WHERE message_id=?', (message_id,))
     maps_run = bot.db_cursor.fetchone()
     if not maps_run:
-        await interaction.response.send_message('Message is not a maps run message.')
+        await interaction.channel.send('Message is not a maps run message.')
         return
 
     # Fetch joined users
@@ -383,7 +383,7 @@ async def maps_list(interaction: discord.Interaction, message_id: int):
         color=0x00ff00
     )
 
-    await interaction.response.send_message(embed=embed)
+    await interaction.channel.send(embed=embed)
 
 # Run the bot
 bot.run(bot.config['token'])
