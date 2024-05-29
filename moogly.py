@@ -352,10 +352,10 @@ async def maps_create(interaction: discord.Interaction, timestamp: str):
     
     # Update the message_id in the view
     view.message_id = message.id
-    
+
     # Store the message info in the database
     bot.db_cursor.execute(
-        'INSERT INTO maps_runs (message_id, timestamp, available_slots, user_ids) VALUES (?, ?, ?, ?, ?)',
+        'INSERT INTO maps_runs (message_id, timestamp, available_slots, user_ids, pinged) VALUES (?, ?, ?, ?, ?)',
         (message.id, timestamp_str, 8, '', 0)
     )
     bot.db_conn.commit()
