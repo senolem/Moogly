@@ -339,12 +339,9 @@ async def maps_create(interaction: discord.Interaction, timestamp: str):
     timestamp_str = timestamp_dt.strftime('%Y-%m-%d %H:%M:%S')
 
     # Check if the timestamp is valid
-    if timestamp is None:
+    if timestamp_dt is None:
         await interaction.response.send_message('Invalid timestamp format. Please use the correct Discord timestamp format.')
         return
-
-    # Format the timestamp to a string
-    timestamp_str = timestamp.strftime('%Y-%m-%d %H:%M:%S')
 
     view = MapRunView(message_id=None, timestamp=timestamp_str, available_slots=8)
     message = await interaction.channel.send(embed=view.embed, view=view)
