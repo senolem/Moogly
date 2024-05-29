@@ -21,8 +21,7 @@ class BotClient(commands.Bot):
         self.config = config
 
         self.dyes_fr = dyes_fr
-        
-        ping_task.start()
+
         super().__init__(
             command_prefix=commands.when_mentioned_or(config['prefix']),
             intents=intents,
@@ -437,3 +436,4 @@ async def ping_task(self):
 
 # Run the bot
 bot.run(bot.config['token'])
+ping_task.start()
