@@ -1,9 +1,10 @@
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 import json
 import sqlite3
 import traceback
 import os
+import datetime
 
 class BotClient(commands.Bot):
     def __init__(self, config, dyes_fr):
@@ -44,6 +45,14 @@ class BotClient(commands.Bot):
             user_id INTEGER PRIMARY KEY,
             fc TEXT,
             ingame_name TEXT
+        )
+        ''')
+        self.db_cursor.execute('''
+        CREATE TABLE IF NOT EXISTS maps_runs (
+            message_id INTEGER PRIMARY KEY,
+            timestamp TEXT,
+            available_slots INTEGER DEFAULT 8,
+            user_ids TEXT
         )
         ''')
         self.db_conn.commit()
@@ -247,6 +256,7 @@ async def get_guild_emojis(interaction: discord.Interaction):
     else:
         await interaction.channel.send("No emojis found in this server.")
 
+# Translate english dyes in french using | as a separator
 @bot.command()
 async def translate_dyes_fr(interaction: discord.Interaction, *args):
     # Split the input arguments
@@ -269,6 +279,161 @@ async def translate_dyes_fr(interaction: discord.Interaction, *args):
         embed.add_field(name=f"{count}x {translated_name}", value=f"({original_name})", inline=False)
 
     await interaction.channel.send(embed=embed)
+
+class MapRunView(discord.ui.View):
+    def __init__(self, message_id, timestamp, available_slots):
+        super().__init__(timeout=None)
+        self.message_id = message_id
+        self.timestamp = timestamp
+        self.available_slots = available_slots
+        self.update_embed()
+
+    def update_embed(self):
+        self.embed = discord.Embed(
+            title="Next maps run",
+            description=f"Next maps run at {self.timestamp}\nWho's in? 💰\nCurrently available slots: {self.available_slots} / 8",
+            color=0x00ff00
+        )
+
+    @discord.ui.button(label="Join", style=discord.ButtonStyle.green, custom_id="join_map_run")
+    async def join_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        user_id = interaction.user.id
+        
+        bot.db_cursor.execute('SELECT * FROM maps_runs WHERE message_id=?', (self.message_id,))
+        maps_run = bot.db_cursor.fetchone()
+        
+        if maps_run:
+            user_ids = maps_run['user_ids'].split(',')
+            if user_id not in [int(uid) for uid in user_ids if uid]:
+                if self.available_slots > 0:
+                    user_ids.append(str(user_id))
+                    self.available_slots -= 1
+                    bot.db_cursor.execute(
+                        'UPDATE maps_runs SET user_ids=?, available_slots=? WHERE message_id=?',
+                        (','.join(user_ids), self.available_slots, self.message_id)
+                    )
+                    bot.db_conn.commit()
+
+                    self.update_embed()
+                    await interaction.message.edit(embed=self.embed, view=self)
+                    await interaction.response.send_message('You have successfully joined the map run! You will be pinged 20 minutes before the maps run starts.', ephemeral=True)
+                else:
+                    await interaction.response.send_message('Sorry, no more available slots for this map run.', ephemeral=True)
+            else:
+                await interaction.response.send_message('You have already joined this map run.', ephemeral=True)
+
+# Create a new map run message | !maps_create <timestamp>
+@bot.command()
+@commands.has_permissions(administrator=True)
+@commands.has_role(bot.config['administrator_role_id'])
+async def maps_create(interaction: discord.Interaction, timestamp: str):
+    # Parse the Discord timestamp format and convert it to a datetime object
+    timestamp = discord.utils.parse_time(timestamp)
+
+    # Check if the timestamp is valid
+    if timestamp is None:
+        await interaction.response.send_message('Invalid timestamp format. Please use the correct Discord timestamp format.')
+        return
+
+    # Format the timestamp to a string
+    timestamp_str = timestamp.strftime('%Y-%m-%d %H:%M:%S')
+
+    view = MapRunView(message_id=None, timestamp=timestamp_str, available_slots=8)
+    message = await interaction.channel.send(embed=view.embed, view=view)
+    
+    # Update the message_id in the view
+    view.message_id = message.id
+    
+    # Store the message info in the database
+    bot.db_cursor.execute(
+        'INSERT INTO maps_runs (message_id, timestamp, available_slots, user_ids) VALUES (?, ?, ?, ?)',
+        (message.id, timestamp_str, 8, '')
+    )
+    bot.db_conn.commit()
+
+# Outputs a list of users who have joined the map run | !maps_list <timestamp>
+@bot.command()
+@commands.has_permissions(administrator=True)
+@commands.has_role(bot.config['administrator_role_id'])
+async def maps_list(interaction: discord.Interaction, message_id: int):
+    # Fetch the message
+    channel = interaction.channel
+    try:
+        message = await channel.fetch_message(message_id)
+    except discord.NotFound:
+        await interaction.response.send_message('Message not found.')
+        return
+
+    # Check if the message is a map run message
+    bot.db_cursor.execute('SELECT * FROM maps_runs WHERE message_id=?', (message_id,))
+    maps_run = bot.db_cursor.fetchone()
+    if not maps_run:
+        await interaction.response.send_message('Message is not a maps run message.')
+        return
+
+    # Fetch joined users
+    joined_user_ids = maps_run['user_ids'].split(',')
+    joined_users = [interaction.guild.get_member(int(user_id)).mention for user_id in joined_user_ids if user_id]
+
+    # Create an embed with the joined users
+    embed = discord.Embed(
+        title="Joined Users",
+        description="\n".join(joined_users) if joined_users else "No users have joined yet.",
+        color=0x00ff00
+    )
+
+    await interaction.response.send_message(embed=embed)
+
+class MapsCog(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
+        self.ping_task.start()
+
+    def cog_unload(self):
+        self.ping_task.cancel()
+
+    @tasks.loop(minutes=1.0)
+    async def ping_task(self):
+        # Fetch maps run info from the database based on the scheduled message ID
+        bot.db_cursor.execute('SELECT * FROM maps_runs WHERE message_id=?', (message_id,))
+        maps_run = bot.db_cursor.fetchone()
+
+        if maps_run:
+            # Calculate the time 20 minutes before the timestamp
+            timestamp = datetime.datetime.strptime(maps_run['timestamp'], '%Y-%m-%d %H:%M:%S')
+            ping_time = timestamp - datetime.timedelta(minutes=20)
+
+            # Check if it's time to ping
+            current_time = datetime.datetime.utcnow()
+            if current_time >= ping_time:
+                # Fetch the joined users
+                joined_user_ids = maps_run['user_ids'].split(',')
+                joined_users = [f"<@{user_id}>" for user_id in joined_user_ids if user_id]
+
+                # Create an embed with the ping message
+                embed = discord.Embed(
+                    title="Maps Run Reminder",
+                    description=f"The maps run will start in 20 minutes. Are you ready?\nJoined Users: {' '.join(joined_users)}",
+                    color=0xff0000
+                )
+
+                # Find the message to ping
+                message_id = maps_run['message_id']
+                channel_id = bot.config['events_channel_id']
+                channel = bot.get_channel(channel_id)
+                if channel:
+                    try:
+                        message = await channel.fetch_message(message_id)
+                        await message.channel.send(embed=embed)
+                    except discord.NotFound:
+                        pass
+
+    @ping_task.before_loop
+    async def before_ping_task(self):
+        print('Waiting for bot to be ready...')
+        await bot.wait_until_ready()
+
+bot.add_cog(MapsCog(bot))
 
 # Run the bot
 bot.run(bot.config['token'])
