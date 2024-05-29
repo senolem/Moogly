@@ -293,7 +293,7 @@ class MapRunView(discord.ui.View):
     def update_embed(self):
         self.embed = discord.Embed(
             title="Next maps run",
-            description=f"Next maps run at {self.timestamp}\nWho's in? 💰\nCurrently available slots: {self.available_slots} / 8",
+            description=f"Next maps run in {self.timestamp}\nWho's in? 💰\nCurrently available slots: {self.available_slots} / 8",
             color=0x00ff00
         )
 
