@@ -4,7 +4,6 @@ import json
 import sqlite3
 import traceback
 import os
-from mapsCog import MapsCog
 from datetime import datetime, timezone
 
 class BotClient(commands.Bot):
@@ -37,7 +36,9 @@ class BotClient(commands.Bot):
         return await super().setup_hook()
 
     async def on_ready(self):
+        from mapsCog import MapsCog
         await bot.add_cog(MapsCog(bot))
+
         print(f'Logged in as {self.user} (ID: {self.user.id})')
         print('------')
 
