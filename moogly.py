@@ -5,7 +5,7 @@ import sqlite3
 import traceback
 import os
 from mapsCog import MapsCog
-import datetime
+from datetime import datetime
 
 class BotClient(commands.Bot):
     def __init__(self, config, dyes_fr):
