@@ -29,7 +29,7 @@ class BotClient(commands.Bot):
         )
 
     @tasks.loop(minutes=1.0)
-    async def ping_task():
+    async def ping_task(self):
         # Fetch maps runs that have not been pinged yet
         bot.db_cursor.execute('SELECT * FROM maps_runs WHERE pinged=0')
         maps_runs = bot.db_cursor.fetchall()
