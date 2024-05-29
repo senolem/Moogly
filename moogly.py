@@ -56,7 +56,7 @@ class BotClient(commands.Bot):
                 # Create an embed with the ping message
                 embed = discord.Embed(
                     title="Maps Run Reminder",
-                    description=f"The maps run will start in 20 minutes. Are you ready?\nJoined Users: {' '.join(joined_users)}",
+                    description=f"The maps run will start in 20 minutes. Are you ready?\n\nJoined Users:\n{'\n'.join(joined_users)}",
                     color=0xff0000
                 )
 
