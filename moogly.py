@@ -400,7 +400,7 @@ async def ping_task(self):
         return
 
     current_time = datetime.now(timezone.utc)
-        
+
     for maps_run in maps_runs:
         # Extract timestamp and calculate ping time
         current_time = datetime.now()
