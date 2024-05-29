@@ -27,7 +27,55 @@ class BotClient(commands.Bot):
             intents=intents,
             help_command=None,
         )
-        
+
+    @tasks.loop(minutes=1.0)
+    async def ping_task():
+        # Fetch maps runs that have not been pinged yet
+        bot.db_cursor.execute('SELECT * FROM maps_runs WHERE pinged=0')
+        maps_runs = bot.db_cursor.fetchall()
+
+        if not maps_runs:
+            return
+
+        current_time = datetime.now(timezone.utc)
+
+        for maps_run in maps_runs:
+            # Calculate time difference between current time and ping time
+            current_time = datetime.now()
+            ping_time = maps_run[1] - timedelta(minutes=20)
+            time_until_ping = (ping_time - current_time).total_seconds() / 60  # Convert to minutes
+
+            # Debug message
+            print(f"Time until ping for maps run {maps_run[0]}: {time_until_ping} minutes")
+
+            if current_time >= ping_time:
+                # Fetch the joined users
+                joined_user_ids = maps_run[3].split(',')
+                joined_users = [f"<@{user_id}>" for user_id in joined_user_ids if user_id]
+
+                # Create an embed with the ping message
+                embed = discord.Embed(
+                    title="Maps Run Reminder",
+                    description=f"The maps run will start in 20 minutes. Are you ready?\nJoined Users: {' '.join(joined_users)}",
+                    color=0xff0000
+                )
+
+                # Find the message to ping
+                message_id = maps_run[0]
+                channel_id = bot.config['events_channel_id']
+                channel = bot.get_channel(channel_id)
+                if channel:
+                    try:
+                        message = await channel.fetch_message(message_id)
+                        await message.channel.send(embed=embed)
+
+                        # Update the pinged status to true
+                        bot.db_cursor.execute('UPDATE maps_runs SET pinged=1 WHERE message_id=?', (message_id,))
+                        bot.db_conn.commit()
+
+                    except discord.NotFound:
+                        pass
+
     async def setup_hook(self):
         self.add_view(AdmissionMessage(timeout=None))
         print('Registered persistent view: AdmissionMessage')
@@ -36,6 +84,7 @@ class BotClient(commands.Bot):
         return await super().setup_hook()
 
     async def on_ready(self):
+        self.ping_task.start()
         print(f'Logged in as {self.user} (ID: {self.user.id})')
         print('------')
 
@@ -53,7 +102,7 @@ class BotClient(commands.Bot):
             timestamp TIMESTAMP,
             available_slots INTEGER DEFAULT 8,
             user_ids TEXT,
-            pinged BOOLEAN DEFAULT 0
+            pinged INTEGER DEFAULT 0
         )
         ''')
         self.db_conn.commit()
@@ -390,54 +439,5 @@ async def maps_list(interaction: discord.Interaction, message_id: int):
 
     await interaction.channel.send(embed=embed)
 
-@tasks.loop(minutes=1.0)
-async def ping_task(self):
-    # Fetch maps runs that have not been pinged yet
-    bot.db_cursor.execute('SELECT * FROM maps_runs WHERE pinged=0')
-    maps_runs = bot.db_cursor.fetchall()
-
-    if not maps_runs:
-        return
-
-    current_time = datetime.now(timezone.utc)
-
-    for maps_run in maps_runs:
-        # Extract timestamp and calculate ping time
-        current_time = datetime.now()
-        ping_time = maps_run[1] - timedelta(minutes=20)
-        time_until_ping = (ping_time - current_time).total_seconds() / 60  # Convert to minutes
-
-        # Debug message
-        print(f"Time until ping for maps run {maps_run[0]}: {time_until_ping} minutes")
-
-        if current_time >= ping_time:
-            # Fetch the joined users
-            joined_user_ids = maps_run[3].split(',')
-            joined_users = [f"<@{user_id}>" for user_id in joined_user_ids if user_id]
-
-            # Create an embed with the ping message
-            embed = discord.Embed(
-                title="Maps Run Reminder",
-                description=f"The maps run will start in 20 minutes. Are you ready?\nJoined Users: {' '.join(joined_users)}",
-                color=0xff0000
-            )
-
-            # Find the message to ping
-            message_id = maps_run[0]
-            channel_id = bot.config['events_channel_id']
-            channel = bot.get_channel(channel_id)
-            if channel:
-                try:
-                    message = await channel.fetch_message(message_id)
-                    await message.channel.send(embed=embed)
-
-                    # Update the pinged status to true
-                    bot.db_cursor.execute('UPDATE maps_runs SET pinged=1 WHERE message_id=?', (message_id,))
-                    bot.db_conn.commit()
-
-                except discord.NotFound:
-                    pass
-
 # Run the bot
 bot.run(bot.config['token'])
-ping_task.start()
