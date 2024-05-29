@@ -387,6 +387,9 @@ async def maps_list(interaction: discord.Interaction, message_id: int):
 class MapsCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+
+    @commands.Cog.listener()
+    async def on_ready(self):
         self.ping_task.start()
 
     def cog_unload(self):
@@ -427,11 +430,6 @@ class MapsCog(commands.Cog):
                         await message.channel.send(embed=embed)
                     except discord.NotFound:
                         pass
-
-    @ping_task.before_loop
-    async def before_ping_task(self):
-        print('Waiting for bot to be ready...')
-        await bot.wait_until_ready()
 
 bot.add_cog(MapsCog(bot))
 
