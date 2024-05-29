@@ -305,8 +305,8 @@ class MapRunView(discord.ui.View):
         maps_run = bot.db_cursor.fetchone()
         
         if maps_run:
-            user_ids = maps_run['user_ids'].split(',')
-            if user_id not in [int(uid) for uid in user_ids if uid]:
+            user_ids = maps_run[3].split(',')
+            if str(user_id) not in user_ids:
                 if self.available_slots > 0:
                     user_ids.append(str(user_id))
                     self.available_slots -= 1
