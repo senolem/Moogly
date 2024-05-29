@@ -54,7 +54,8 @@ class BotClient(commands.Bot):
             message_id INTEGER PRIMARY KEY,
             timestamp TEXT,
             available_slots INTEGER DEFAULT 8,
-            user_ids TEXT
+            user_ids TEXT,
+            pinged BOOLEAN DEFAULT 0
         )
         ''')
         self.db_conn.commit()
@@ -300,7 +301,7 @@ class MapRunView(discord.ui.View):
     @discord.ui.button(label="Join", style=discord.ButtonStyle.green, custom_id="join_map_run")
     async def join_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         user_id = interaction.user.id
-        
+
         bot.db_cursor.execute('SELECT * FROM maps_runs WHERE message_id=?', (self.message_id,))
         maps_run = bot.db_cursor.fetchone()
         
@@ -329,6 +330,8 @@ class MapRunView(discord.ui.View):
 @commands.has_permissions(administrator=True)
 @commands.has_role(bot.config['administrator_role_id'])
 async def maps_create(interaction: discord.Interaction, timestamp: str):
+    channel = bot.get_channel(bot.config['events_channel_id'])
+
     # Extract timestamp from the Discord format string
     timestamp_split = int(timestamp.split(':')[1].split(':')[0])
 
@@ -340,19 +343,19 @@ async def maps_create(interaction: discord.Interaction, timestamp: str):
 
     # Check if the timestamp is valid
     if timestamp_dt is None:
-        await interaction.response.send_message('Invalid timestamp format. Please use the correct Discord timestamp format.')
+        await interaction.channel.send('Invalid timestamp format. Please use the correct Discord timestamp format.')
         return
 
     view = MapRunView(message_id=None, timestamp=timestamp, available_slots=8)
-    message = await interaction.channel.send(embed=view.embed, view=view)
+    message = await channel.send(embed=view.embed, view=view)
     
     # Update the message_id in the view
     view.message_id = message.id
     
     # Store the message info in the database
     bot.db_cursor.execute(
-        'INSERT INTO maps_runs (message_id, timestamp, available_slots, user_ids) VALUES (?, ?, ?, ?)',
-        (message.id, timestamp_str, 8, '')
+        'INSERT INTO maps_runs (message_id, timestamp, available_slots, user_ids) VALUES (?, ?, ?, ?, ?)',
+        (message.id, timestamp_str, 8, '', 0)
     )
     bot.db_conn.commit()
 
@@ -362,7 +365,7 @@ async def maps_create(interaction: discord.Interaction, timestamp: str):
 @commands.has_role(bot.config['administrator_role_id'])
 async def maps_list(interaction: discord.Interaction, message_id: int):
     # Fetch the message
-    channel = interaction.channel
+    channel = bot.get_channel(bot.config['events_channel_id'])
     try:
         message = await channel.fetch_message(message_id)
     except discord.NotFound:
