@@ -330,10 +330,10 @@ class MapRunView(discord.ui.View):
 @commands.has_role(bot.config['administrator_role_id'])
 async def maps_create(interaction: discord.Interaction, timestamp: str):
     # Extract timestamp from the Discord format string
-    timestamp = int(timestamp.split(':')[1].split(':')[0])
+    timestamp_split = int(timestamp.split(':')[1].split(':')[0])
 
     # Convert the timestamp to a Python datetime object
-    timestamp_dt = datetime.fromtimestamp(timestamp, tz=timezone.utc)
+    timestamp_dt = datetime.fromtimestamp(timestamp_split, tz=timezone.utc)
 
     # Convert the datetime object to a string in the desired format
     timestamp_str = timestamp_dt.strftime('%Y-%m-%d %H:%M:%S')
@@ -343,7 +343,7 @@ async def maps_create(interaction: discord.Interaction, timestamp: str):
         await interaction.response.send_message('Invalid timestamp format. Please use the correct Discord timestamp format.')
         return
 
-    view = MapRunView(message_id=None, timestamp=timestamp_str, available_slots=8)
+    view = MapRunView(message_id=None, timestamp=timestamp, available_slots=8)
     message = await interaction.channel.send(embed=view.embed, view=view)
     
     # Update the message_id in the view

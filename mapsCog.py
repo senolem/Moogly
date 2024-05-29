@@ -1,6 +1,6 @@
 import discord
 from discord.ext import commands, tasks
-import datetime
+from datetime import datetime, timezone
 
 class MapsCog(commands.Cog):
     def __init__(self, bot):
@@ -25,7 +25,7 @@ class MapsCog(commands.Cog):
             ping_time = timestamp - datetime.timedelta(minutes=20)
 
             # Check if it's time to ping
-            current_time = datetime.datetime.utcnow()
+            current_time = datetime.now(timezone.utc)
             if current_time >= ping_time:
                 # Fetch the joined users
                 joined_user_ids = maps_run['user_ids'].split(',')
