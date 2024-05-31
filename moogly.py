@@ -373,7 +373,7 @@ class MapsRunView(discord.ui.View):
                 if self.available_slots > 0:
                     # Calculate time difference between current time and map run time
                     current_time = datetime.now(timezone.utc)
-                    map_run_time = datetime.fromtimestamp(maps_run[3], tz=timezone.utc)
+                    map_run_time = datetime.fromtimestamp(maps_run[2], tz=timezone.utc)
                     time_until_map_run = (map_run_time - current_time).total_seconds() / 60  # Convert to minutes
 
                     if time_until_map_run > 20:
