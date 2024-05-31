@@ -109,6 +109,7 @@ class BotClient(commands.Bot):
                 # Find the message to ping
                 message_id = maps_run[0]
                 channel_id = self.config['events_channel_id']
+                print(channel_id)
                 channel = self.get_channel(channel_id)
                 if channel:
                     try:
