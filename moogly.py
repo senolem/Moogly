@@ -95,6 +95,7 @@ class BotClient(commands.Bot):
             print(f"Time until ping for maps run {maps_run[0]}: {time_until_ping} minutes")
 
             if current_time >= ping_time + timedelta(minutes=20):
+                print('time to ping)')
                 # Fetch the joined users
                 joined_user_ids = maps_run[4].split(',')
                 joined_users = [f"<@{user_id}>" for user_id in joined_user_ids if user_id]
