@@ -93,6 +93,7 @@ class BotClient(commands.Bot):
             self.add_view(view)
             print(f"Registered persistent view: MapsRunView (message_id={message_id})")
 
+        self.ping_task.start()
         return await super().setup_hook()
 
     async def on_ready(self):
