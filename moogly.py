@@ -352,12 +352,17 @@ class MapsRunView(discord.ui.View):
         # Fetch joined users
         bot.db_cursor.execute('SELECT user_ids FROM maps_runs WHERE message_id=?', (self.message_id,))
         maps_run = bot.db_cursor.fetchone()
-        joined_user_ids = maps_run[0].split(',')
-        joined_users = [f"<@{user_id}>" for user_id in joined_user_ids if user_id]
-
+    
+        if maps_run and maps_run[0]:
+            joined_user_ids = maps_run[0].split(',')
+            joined_users = [f"<@{user_id}>" for user_id in joined_user_ids if user_id]
+            joined_users_description = "\n\n**Joined users**:\n" + "\n".join(joined_users)
+        else:
+            joined_users_description = ""
+    
         self.embed = discord.Embed(
             title="Next maps run",
-            description=f"Next maps run in {self.timestamp}\nWho's in? 💰\nCurrently available slots: {self.available_slots} / 8\n\nJoined users:\n" + "\n".join(joined_users),
+            description=f"Next maps run in {self.timestamp}\nWho's in? 💰\nCurrently available slots: {self.available_slots} / 8{joined_users_description}",
             color=0x00ff00
         )
 
