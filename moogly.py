@@ -32,8 +32,8 @@ class BotClient(commands.Bot):
     async def ping_task(self):
         print('Checking for maps to ping...')
         # Fetch maps runs that have not been pinged yet
-        bot.db_cursor.execute('SELECT * FROM maps_runs WHERE pinged=0')
-        maps_runs = bot.db_cursor.fetchall()
+        self.db_cursor.execute('SELECT * FROM maps_runs WHERE pinged=0')
+        maps_runs = self.db_cursor.fetchall()
 
         if not maps_runs:
             print('No maps to ping right now.')
@@ -64,16 +64,16 @@ class BotClient(commands.Bot):
 
                 # Find the message to ping
                 message_id = maps_run[0]
-                channel_id = bot.config['events_channel_id']
-                channel = bot.get_channel(channel_id)
+                channel_id = self.config['events_channel_id']
+                channel = self.get_channel(channel_id)
                 if channel:
                     try:
                         message = await channel.fetch_message(message_id)
-                        await message.channel.send(f"<@&{bot.config['maps_notifications_role_id']}> ", embed=embed)
+                        await message.channel.send(f"<@&{self.config['maps_notifications_role_id']}> ", embed=embed)
 
                         # Update the pinged status to true
-                        bot.db_cursor.execute('UPDATE maps_runs SET pinged=1 WHERE message_id=?', (message_id,))
-                        bot.db_conn.commit()
+                        self.db_cursor.execute('UPDATE maps_runs SET pinged=1 WHERE message_id=?', (message_id,))
+                        self.db_conn.commit()
 
                     except discord.NotFound:
                         pass
