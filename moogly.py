@@ -110,7 +110,7 @@ class BotClient(commands.Bot):
                 message_id = maps_run[0]
                 channel_id = self.config['events_channel_id']
                 print(channel_id)
-                channel = self.get_channel(channel_id)
+                channel = await self.get_channel(channel_id)
                 if channel:
                     try:
                         message = await channel.fetch_message(message_id)
@@ -159,7 +159,7 @@ class ApplicationModal(discord.ui.Modal, title='Access application'):
         bot.db_cursor.execute('INSERT INTO applications (user_id, fc, ingame_name) VALUES (?, ?, ?)', (interaction.user.id, self.fc, self.name.value))
         bot.db_conn.commit()
 
-        application_channel = bot.get_channel(bot.config['admission_channel_id'])
+        application_channel = await bot.get_channel(bot.config['admission_channel_id'])
         message_content = f"New application from {interaction.user.mention} (ID: {interaction.user.id}):\nIn-game name: {self.name.value}\nFC: {self.fc}"
         await application_channel.send(message_content, view=AdmissionMessage())
         await interaction.response.send_message(f"Application sent, awaiting approval...", ephemeral=True)
@@ -412,7 +412,7 @@ class MapsRunView(discord.ui.View):
 @commands.has_permissions(administrator=True)
 @commands.has_role(bot.config['administrator_role_id'])
 async def maps_create(interaction: discord.Interaction, timestamp: str):
-    channel = bot.get_channel(bot.config['events_channel_id'])
+    channel = await bot.get_channel(bot.config['events_channel_id'])
 
     # Check if the timestamp is valid
     try:
@@ -444,7 +444,7 @@ async def maps_create(interaction: discord.Interaction, timestamp: str):
 @commands.has_role(bot.config['administrator_role_id'])
 async def maps_list(interaction: discord.Interaction, message_id: int):
     # Fetch the message
-    channel = bot.get_channel(bot.config['events_channel_id'])
+    channel = await bot.get_channel(bot.config['events_channel_id'])
     try:
         message = await channel.fetch_message(message_id)
     except discord.NotFound:
