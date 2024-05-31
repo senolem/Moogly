@@ -30,12 +30,13 @@ class BotClient(commands.Bot):
 
     @tasks.loop(minutes=1.0)
     async def ping_task(self):
+        print('Checking for maps to ping...')
         # Fetch maps runs that have not been pinged yet
         bot.db_cursor.execute('SELECT * FROM maps_runs WHERE pinged=0')
         maps_runs = bot.db_cursor.fetchall()
 
         if not maps_runs:
-            print('No maps to ping right now...')
+            print('No maps to ping right now.')
             return
 
         current_time = datetime.now(timezone.utc)
@@ -93,7 +94,6 @@ class BotClient(commands.Bot):
             self.add_view(view)
             print(f"Registered persistent view: MapsRunView (message_id={message_id})")
 
-        self.ping_task.start()
         return await super().setup_hook()
 
     async def on_ready(self):
