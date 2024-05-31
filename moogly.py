@@ -103,10 +103,8 @@ class BotClient(commands.Bot):
                 message_id = maps_run[0]
                 channel_id = self.config['events_channel_id']
                 channel = await self.fetch_channel(channel_id)
-                print(channel)
                 if channel:
                     try:
-                        print('pinging map')
                         await channel.send(f"<@&{self.config['maps_notifications_role_id']}> ", embed=embed)
 
                         # Update the pinged status to true
@@ -115,8 +113,6 @@ class BotClient(commands.Bot):
 
                     except Exception as e:
                         print(e)
-                else:
-                    print('channel not found!')
 
 # Load config from config.json file
 def load_config():
