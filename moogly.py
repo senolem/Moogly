@@ -63,7 +63,7 @@ class BotClient(commands.Bot):
                 if channel:
                     try:
                         message = await channel.fetch_message(message_id)
-                        await message.channel.send(embed=embed)
+                        await message.channel.send(f'<@&{bot.config['maps_notifications_role_id']}> ', embed=embed)
 
                         # Update the pinged status to true
                         bot.db_cursor.execute('UPDATE maps_runs SET pinged=1 WHERE message_id=?', (message_id,))
@@ -360,10 +360,10 @@ class MapsRunView(discord.ui.View):
             joined_users_description = "\n\n**Joined users**:\n" + "\n".join(joined_users)
         else:
             joined_users_description = ""
-    
+
         self.embed = discord.Embed(
             title="Next maps run",
-            description=f"<@&{bot.config['maps_notifications_role_id']}> Next maps run on {self.timestamp}\nWho's in? 💰\nCurrently available slots: {self.available_slots} / 8{joined_users_description}",
+            description=f"Next maps run on {self.timestamp}\nWho's in? 💰\nCurrently available slots: {self.available_slots} / 8{joined_users_description}",
             color=0xffc100
         )
 
@@ -412,7 +412,7 @@ async def maps_create(interaction: discord.Interaction, timestamp: str):
         return
 
     view = MapsRunView(message_id=None, timestamp=timestamp, available_slots=8)
-    message = await channel.send(embed=view.embed, view=view)
+    message = await channel.send(f'<@&{bot.config['maps_notifications_role_id']}> ', embed=view.embed, view=view)
 
     # Update the message_id in the view
     view.message_id = message.id
