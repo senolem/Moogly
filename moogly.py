@@ -63,7 +63,7 @@ class BotClient(commands.Bot):
                 if channel:
                     try:
                         message = await channel.fetch_message(message_id)
-                        await message.channel.send(f'<@&{bot.config['maps_notifications_role_id']}> ', embed=embed)
+                        await message.channel.send(f"<@&{bot.config['maps_notifications_role_id']}> ", embed=embed)
 
                         # Update the pinged status to true
                         bot.db_cursor.execute('UPDATE maps_runs SET pinged=1 WHERE message_id=?', (message_id,))
@@ -86,13 +86,13 @@ class BotClient(commands.Bot):
         for message_id, discord_timestamp, timestamp, available_slots in maps_runs:
             view = MapsRunView(message_id=int(message_id), timestamp=discord_timestamp, available_slots=available_slots)
             self.add_view(view)
-            print(f'Registered persistent view: MapsRunView (message_id={message_id})')
+            print(f"Registered persistent view: MapsRunView (message_id={message_id})")
 
         return await super().setup_hook()
 
     async def on_ready(self):
         self.ping_task.start()
-        print(f'Logged in as {self.user} (ID: {self.user.id})')
+        print(f"Logged in as {self.user} (ID: {self.user.id})")
         print('------')
 
     def create_tables(self):
@@ -150,9 +150,9 @@ class ApplicationModal(discord.ui.Modal, title='Access application'):
         bot.db_conn.commit()
 
         application_channel = bot.get_channel(bot.config['admission_channel_id'])
-        message_content = f'New application from {interaction.user.mention} (ID: {interaction.user.id}):\nIn-game name: {self.name.value}\nFC: {self.fc}'
+        message_content = f"New application from {interaction.user.mention} (ID: {interaction.user.id}):\nIn-game name: {self.name.value}\nFC: {self.fc}"
         await application_channel.send(message_content, view=AdmissionMessage())
-        await interaction.response.send_message(f'Application sent, awaiting approval...', ephemeral=True)
+        await interaction.response.send_message(f"Application sent, awaiting approval...", ephemeral=True)
 
     async def on_error(self, interaction: discord.Interaction, error: Exception):
         await interaction.response.send_message('Oops! Something went wrong. Please try again', ephemeral=True)
@@ -203,10 +203,10 @@ class AdmissionMessage(discord.ui.View):
                 await user.add_roles(role)
                 await user.edit(nick=application[2])
             except discord.errors.Forbidden:
-                await bot.get_channel(bot.config['logs_channel_id']).send(f'Execution of application for {user.mention} failed, are you sure the user doesn\'t have a role above Moogly\'s role?')
+                await bot.get_channel(bot.config['logs_channel_id']).send(f"Execution of application for {user.mention} failed, are you sure the user doesn\'t have a role above Moogly\'s role?")
             await interaction.message.delete()
-            await interaction.response.send_message(f'Application for {user.mention} approved', ephemeral=True)
-            await bot.get_channel(bot.config['logs_channel_id']).send(f'Application from {user.mention} (ID: {user_id}) approved:\nIn-game name: {application[2]}\nFC: {application[1]}')
+            await interaction.response.send_message(f"Application for {user.mention} approved", ephemeral=True)
+            await bot.get_channel(bot.config['logs_channel_id']).send(f"Application from {user.mention} (ID: {user_id}) approved:\nIn-game name: {application[2]}\nFC: {application[1]}")
             await user.send('Your application to get access to Seventh Haven server has been approved, you now have access to the server.')
         else:
             await interaction.response.send_message('Error: Failed to fetch user', ephemeral=True)
@@ -227,8 +227,8 @@ class AdmissionMessage(discord.ui.View):
             bot.db_cursor.execute('DELETE FROM applications WHERE user_id=?', (user_id,))
             bot.db_conn.commit()
 
-            await interaction.response.send_message(f'Application for {user.mention} declined', ephemeral=True)
-            await bot.get_channel(bot.config['logs_channel_id']).send(f'Application from {user.mention} (ID: {user_id}) declined:\nIn-game name: {application[2]}\nFC: {application[1]}')
+            await interaction.response.send_message(f"Application for {user.mention} declined", ephemeral=True)
+            await bot.get_channel(bot.config['logs_channel_id']).send(f"Application from {user.mention} (ID: {user_id}) declined:\nIn-game name: {application[2]}\nFC: {application[1]}")
             await user.send('Your application to get access to Seventh Haven server has been declined, please try again.')
             await interaction.message.delete()
         else:
@@ -300,7 +300,7 @@ async def application_delete(interaction: discord.Interaction, user: discord.Use
         return
     bot.db_cursor.execute('DELETE FROM applications WHERE user_id=?', (user.id,))
     bot.db_conn.commit()
-    await interaction.channel.send(f'Application deleted for user {user.mention}.')
+    await interaction.channel.send(f"Application deleted for user {user.mention}.")
 
 # List guild's emojis ids
 @commands.has_permissions(administrator=True)
@@ -412,7 +412,7 @@ async def maps_create(interaction: discord.Interaction, timestamp: str):
         return
 
     view = MapsRunView(message_id=None, timestamp=timestamp, available_slots=8)
-    message = await channel.send(f'<@&{bot.config['maps_notifications_role_id']}> ', embed=view.embed, view=view)
+    message = await channel.send(f"<@&{bot.config['maps_notifications_role_id']}>", embed=view.embed, view=view)
 
     # Update the message_id in the view
     view.message_id = message.id
