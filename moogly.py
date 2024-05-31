@@ -97,7 +97,7 @@ class BotClient(commands.Bot):
         return await super().setup_hook()
 
     async def on_ready(self):
-        self.ping_task.start()
+        await self.ping_task.start()
         print(f"Logged in as {self.user} (ID: {self.user.id})")
         print('------')
 
