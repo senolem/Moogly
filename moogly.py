@@ -28,7 +28,50 @@ class BotClient(commands.Bot):
             help_command=None,
         )
 
-    @tasks.loop(minutes=1.0)
+    async def setup_hook(self):
+        self.ping_task.start()
+        self.add_view(AdmissionMessage(timeout=None))
+        print('Registered persistent view: AdmissionMessage')
+        self.add_view(ApplicationMessage(timeout=None))
+        print('Registered persistent view: ApplicationMessage')
+
+        # Retrieve the message_id, discord_timestamp, and timestamp from the database
+        self.db_cursor.execute('SELECT message_id, discord_timestamp, timestamp, available_slots FROM maps_runs')
+        maps_runs = self.db_cursor.fetchall()
+
+        # Recreate the MapsRunView instance for each message_id
+        for message_id, discord_timestamp, timestamp, available_slots in maps_runs:
+            view = MapsRunView(message_id=int(message_id), timestamp=discord_timestamp, available_slots=available_slots)
+            self.add_view(view)
+            print(f"Registered persistent view: MapsRunView (message_id={message_id})")
+
+        return await super().setup_hook()
+
+    async def on_ready(self):
+        print(f"Logged in as {self.user} (ID: {self.user.id})")
+        print('------')
+
+    def create_tables(self):
+        self.db_cursor.execute('''
+        CREATE TABLE IF NOT EXISTS applications (
+            user_id INTEGER PRIMARY KEY,
+            fc TEXT,
+            ingame_name TEXT
+        )
+        ''')
+        self.db_cursor.execute('''
+        CREATE TABLE IF NOT EXISTS maps_runs (
+            message_id INTEGER PRIMARY KEY,
+            discord_timestamp TEXT,
+            timestamp TIMESTAMP,
+            available_slots INTEGER DEFAULT 8,
+            user_ids TEXT,
+            pinged INTEGER DEFAULT 0
+        )
+        ''')
+        self.db_conn.commit()
+
+    @tasks.loop(seconds=60)
     async def ping_task(self):
         print('Checking for maps to ping...')
         # Fetch maps runs that have not been pinged yet
@@ -77,49 +120,6 @@ class BotClient(commands.Bot):
 
                     except discord.NotFound:
                         pass
-
-    async def setup_hook(self):
-        self.add_view(AdmissionMessage(timeout=None))
-        print('Registered persistent view: AdmissionMessage')
-        self.add_view(ApplicationMessage(timeout=None))
-        print('Registered persistent view: ApplicationMessage')
-
-        # Retrieve the message_id, discord_timestamp, and timestamp from the database
-        self.db_cursor.execute('SELECT message_id, discord_timestamp, timestamp, available_slots FROM maps_runs')
-        maps_runs = self.db_cursor.fetchall()
-
-        # Recreate the MapsRunView instance for each message_id
-        for message_id, discord_timestamp, timestamp, available_slots in maps_runs:
-            view = MapsRunView(message_id=int(message_id), timestamp=discord_timestamp, available_slots=available_slots)
-            self.add_view(view)
-            print(f"Registered persistent view: MapsRunView (message_id={message_id})")
-
-        return await super().setup_hook()
-
-    async def on_ready(self):
-        self.ping_task.start()
-        print(f"Logged in as {self.user} (ID: {self.user.id})")
-        print('------')
-
-    def create_tables(self):
-        self.db_cursor.execute('''
-        CREATE TABLE IF NOT EXISTS applications (
-            user_id INTEGER PRIMARY KEY,
-            fc TEXT,
-            ingame_name TEXT
-        )
-        ''')
-        self.db_cursor.execute('''
-        CREATE TABLE IF NOT EXISTS maps_runs (
-            message_id INTEGER PRIMARY KEY,
-            discord_timestamp TEXT,
-            timestamp TIMESTAMP,
-            available_slots INTEGER DEFAULT 8,
-            user_ids TEXT,
-            pinged INTEGER DEFAULT 0
-        )
-        ''')
-        self.db_conn.commit()
 
 # Load config from config.json file
 def load_config():
