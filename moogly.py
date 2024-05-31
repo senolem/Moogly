@@ -73,13 +73,11 @@ class BotClient(commands.Bot):
 
     @tasks.loop(seconds=60)
     async def ping_task(self):
-        print('Checking for maps to ping...')
         # Fetch maps runs that have not been pinged yet
         self.db_cursor.execute('SELECT * FROM maps_runs WHERE pinged=0')
         maps_runs = self.db_cursor.fetchall()
 
         if not maps_runs:
-            print('No maps to ping right now.')
             return
 
         current_time = datetime.now(timezone.utc)
@@ -87,14 +85,9 @@ class BotClient(commands.Bot):
         for maps_run in maps_runs:
             # Calculate time difference between current time and ping time
             current_time = datetime.now(timezone.utc)
-            ping_time = datetime.fromtimestamp(maps_run[2], tz=timezone.utc)
-            print(f"current time {current_time} ping_time{ping_time}")
-            time_until_ping = (ping_time - current_time).total_seconds() / 60  # Convert to minutes
+            ping_time = datetime.fromtimestamp(maps_run[2], tz=timezone.utc) - timedelta(minutes=20)
 
-            # Debug message
-            print(f"Time until ping for maps run {maps_run[0]}: {time_until_ping} minutes")
-
-            if current_time >= ping_time + timedelta(minutes=20):
+            if current_time >= ping_time:
                 # Fetch the joined users
                 joined_user_ids = maps_run[4].split(',')
                 joined_users = [f"<@{user_id}>" for user_id in joined_user_ids if user_id]
@@ -109,10 +102,10 @@ class BotClient(commands.Bot):
                 # Find the message to ping
                 message_id = maps_run[0]
                 channel_id = self.config['events_channel_id']
-                print(channel_id)
                 channel = await self.fetch_channel(channel_id)
                 if channel:
                     try:
+                        print('pinging map')
                         message = await channel.fetch_message(message_id)
                         await message.channel.send(f"<@&{self.config['maps_notifications_role_id']}> ", embed=embed)
 
@@ -123,7 +116,7 @@ class BotClient(commands.Bot):
                     except discord.NotFound:
                         pass
                 else:
-                    print('no channel found')
+                    print('channel not found!')
 
 # Load config from config.json file
 def load_config():
