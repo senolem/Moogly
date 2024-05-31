@@ -345,6 +345,8 @@ class MapsRunView(discord.ui.View):
         self.message_id = message_id
         self.timestamp = timestamp
         self.available_slots = available_slots
+        self.embed = discord.Embed()
+        self.update_embed()
 
     def update_embed(self):
         # Fetch joined users
