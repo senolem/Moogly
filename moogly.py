@@ -345,7 +345,6 @@ class MapsRunView(discord.ui.View):
         self.message_id = message_id
         self.timestamp = timestamp
         self.available_slots = available_slots
-        self.update_embed()
 
     def update_embed(self):
         # Fetch joined users
@@ -421,6 +420,10 @@ async def maps_create(interaction: discord.Interaction, timestamp: str):
         (int(message.id), timestamp, timestamp_dt.timestamp(), 8, '', 0)
     )
     bot.db_conn.commit()
+
+    # Update the embed with the joined users
+    view.update_embed()
+    await message.edit(embed=view.embed, view=view)
 
 # Outputs a list of users who have joined the map run | !maps_list <timestamp>
 @bot.command()
