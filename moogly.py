@@ -53,7 +53,7 @@ class BotClient(commands.Bot):
                 embed = discord.Embed(
                     title="Maps Run Reminder",
                     description=f"The maps run will start in 20 minutes. Are you ready?\n\nJoined Users:\n" + "\n".join(joined_users),
-                    color=0xff0000
+                    color=0xff8a08
                 )
 
                 # Find the message to ping
@@ -244,7 +244,7 @@ class ApplicationMessage(discord.ui.View):
             await interaction.response.send_message("You don't have permission to use this button. Please contact an administrator.", ephemeral=True)
             return False
 
-    @discord.ui.button(label='Seventh Haven', style=discord.ButtonStyle.blurple, custom_id='ApplicationMessage:seventh_haven_button')
+    @discord.ui.button(label='Seventh Haven', style=discord.ButtonStyle.blurple, custom_id='ApplicationMessage:seventh_haven_button', emoji=discord.PartialEmoji.from_str('<:seventhhaven:1241086148844064819>'))
     async def seventh_haven_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         bot.db_cursor.execute('SELECT * FROM applications WHERE user_id=?', (interaction.user.id,))
         application = bot.db_cursor.fetchone()
@@ -254,7 +254,7 @@ class ApplicationMessage(discord.ui.View):
         else:
             await interaction.response.send_message('You already sent an application, please wait until an administrator reviews it.', ephemeral=True)
 
-    @discord.ui.button(label='Moon', style=discord.ButtonStyle.green, custom_id='ApplicationMessage:moon_button')
+    @discord.ui.button(label='Moon', style=discord.ButtonStyle.green, custom_id='ApplicationMessage:moon_button', emoji=discord.PartialEmoji.from_str('<:moon:1241086139558002738>'))
     async def moon_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         bot.db_cursor.execute('SELECT * FROM applications WHERE user_id=?', (interaction.user.id,))
         application = bot.db_cursor.fetchone()
@@ -264,7 +264,7 @@ class ApplicationMessage(discord.ui.View):
         else:
             await interaction.response.send_message('You already sent an application, please wait until an administrator reviews it.', ephemeral=True)
     
-    @discord.ui.button(label='ONE', style=discord.ButtonStyle.red, custom_id='ApplicationMessage:one_button')
+    @discord.ui.button(label='ONE', style=discord.ButtonStyle.red, custom_id='ApplicationMessage:one_button', emoji=discord.PartialEmoji.from_str('<:one:1241086126140166164>'))
     async def one_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         bot.db_cursor.execute('SELECT * FROM applications WHERE user_id=?', (interaction.user.id,))
         application = bot.db_cursor.fetchone()
@@ -273,7 +273,6 @@ class ApplicationMessage(discord.ui.View):
             await interaction.response.send_modal(ApplicationModal('ONE'))
         else:
             await interaction.response.send_message('You already sent an application, please wait until an administrator reviews it.', ephemeral=True)
-
 
 # Add application form to current channel | !application_form
 @bot.command()
@@ -331,7 +330,10 @@ async def translate_dyes_fr(interaction: discord.Interaction, *args):
                 break
     
     # Create an embed to display the results
-    embed = discord.Embed(title="Translated dyes (french)", color=0x00ff00)
+    embed = discord.Embed(
+        title="Translated dyes (french)",
+        color=0x5d3fd3
+    )
     for translated_name, count in dye_counts.items():
         original_name = [entry["original_name"] for entry in bot.dyes_fr if entry["translated_name"] == translated_name][0]
         embed.add_field(name=f"{count}x {translated_name}", value=f"({original_name})", inline=False)
@@ -361,8 +363,8 @@ class MapsRunView(discord.ui.View):
     
         self.embed = discord.Embed(
             title="Next maps run",
-            description=f"Next maps run in {self.timestamp}\nWho's in? 💰\nCurrently available slots: {self.available_slots} / 8{joined_users_description}",
-            color=0x00ff00
+            description=f"<@&{bot.config['maps_notifications_role_id']}> Next maps run on {self.timestamp}\nWho's in? 💰\nCurrently available slots: {self.available_slots} / 8{joined_users_description}",
+            color=0xffc100
         )
 
     @discord.ui.button(label="Join", style=discord.ButtonStyle.green, custom_id="join_map_run")
@@ -376,12 +378,7 @@ class MapsRunView(discord.ui.View):
             user_ids = maps_run[4].split(',')
             if str(user_id) not in user_ids:
                 if self.available_slots > 0:
-                    # Calculate time difference between current time and map run time
-                    current_time = datetime.now(timezone.utc)
-                    map_run_time = datetime.fromtimestamp(maps_run[2], tz=timezone.utc)
-                    time_until_map_run = (map_run_time - current_time).total_seconds() / 60  # Convert to minutes
-
-                    if time_until_map_run > 20:
+                    if maps_run[5] == 0: # Check if ping was already sent, meaning that the map will be running soon
                         user_ids.append(str(user_id))
                         self.available_slots -= 1
                         bot.db_cursor.execute(
@@ -459,7 +456,7 @@ async def maps_list(interaction: discord.Interaction, message_id: int):
     embed = discord.Embed(
         title="Joined Users",
         description="\n".join(joined_users) if joined_users else "No users have joined yet.",
-        color=0x00ff00
+        color=0x5d3fd3
     )
 
     await interaction.channel.send(embed=embed)
