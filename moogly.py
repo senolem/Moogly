@@ -103,6 +103,7 @@ class BotClient(commands.Bot):
                 message_id = maps_run[0]
                 channel_id = self.config['events_channel_id']
                 channel = await self.fetch_channel(channel_id)
+                print(channel)
                 if channel:
                     try:
                         print('pinging map')
