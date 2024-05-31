@@ -110,7 +110,7 @@ class BotClient(commands.Bot):
                 message_id = maps_run[0]
                 channel_id = self.config['events_channel_id']
                 print(channel_id)
-                channel = await self.get_channel(channel_id)
+                channel = await self.fetch_channel(channel_id)
                 if channel:
                     try:
                         message = await channel.fetch_message(message_id)
@@ -159,7 +159,7 @@ class ApplicationModal(discord.ui.Modal, title='Access application'):
         bot.db_cursor.execute('INSERT INTO applications (user_id, fc, ingame_name) VALUES (?, ?, ?)', (interaction.user.id, self.fc, self.name.value))
         bot.db_conn.commit()
 
-        application_channel = await bot.get_channel(bot.config['admission_channel_id'])
+        application_channel = await bot.fetch_channel(bot.config['admission_channel_id'])
         message_content = f"New application from {interaction.user.mention} (ID: {interaction.user.id}):\nIn-game name: {self.name.value}\nFC: {self.fc}"
         await application_channel.send(message_content, view=AdmissionMessage())
         await interaction.response.send_message(f"Application sent, awaiting approval...", ephemeral=True)
@@ -171,7 +171,7 @@ class ApplicationModal(discord.ui.Modal, title='Access application'):
 # Approve/Deny view
 class AdmissionMessage(discord.ui.View):
     async def interaction_check(self, interaction: discord.Interaction[discord.Client]) -> bool:
-        member = interaction.guild.get_member(interaction.user.id)
+        member = await interaction.guild.fetch_member(interaction.user.id)
         if member.guild_permissions.administrator and bot.config['administrator_role_id'] in [role.id for role in member.roles]:
             return True
         else:
@@ -194,7 +194,7 @@ class AdmissionMessage(discord.ui.View):
             await interaction.response.send_message('Error: user_id not found in applications database', ephemeral=True)
             return
 
-        user = interaction.guild.get_member(user_id)
+        user = await interaction.guild.fetch_member(user_id)
 
         if user:
             if application[1] == 'Seventh Haven':
@@ -213,10 +213,10 @@ class AdmissionMessage(discord.ui.View):
                 await user.add_roles(role)
                 await user.edit(nick=application[2])
             except discord.errors.Forbidden:
-                await bot.get_channel(bot.config['logs_channel_id']).send(f"Execution of application for {user.mention} failed, are you sure the user doesn\'t have a role above Moogly\'s role?")
+                await bot.fetch_channel(bot.config['logs_channel_id']).send(f"Execution of application for {user.mention} failed, are you sure the user doesn\'t have a role above Moogly\'s role?")
             await interaction.message.delete()
             await interaction.response.send_message(f"Application for {user.mention} approved", ephemeral=True)
-            await bot.get_channel(bot.config['logs_channel_id']).send(f"Application from {user.mention} (ID: {user_id}) approved:\nIn-game name: {application[2]}\nFC: {application[1]}")
+            await bot.fetch_channel(bot.config['logs_channel_id']).send(f"Application from {user.mention} (ID: {user_id}) approved:\nIn-game name: {application[2]}\nFC: {application[1]}")
             await user.send('Your application to get access to Seventh Haven server has been approved, you now have access to the server.')
         else:
             await interaction.response.send_message('Error: Failed to fetch user', ephemeral=True)
@@ -231,14 +231,14 @@ class AdmissionMessage(discord.ui.View):
             await interaction.response.send_message('Error: user_id not found in applications database', ephemeral=True)
             return
 
-        user = bot.get_user(user_id)
+        user = await bot.fetch_user(user_id)
 
         if user:
             bot.db_cursor.execute('DELETE FROM applications WHERE user_id=?', (user_id,))
             bot.db_conn.commit()
 
             await interaction.response.send_message(f"Application for {user.mention} declined", ephemeral=True)
-            await bot.get_channel(bot.config['logs_channel_id']).send(f"Application from {user.mention} (ID: {user_id}) declined:\nIn-game name: {application[2]}\nFC: {application[1]}")
+            await bot.fetch_channel(bot.config['logs_channel_id']).send(f"Application from {user.mention} (ID: {user_id}) declined:\nIn-game name: {application[2]}\nFC: {application[1]}")
             await user.send('Your application to get access to Seventh Haven server has been declined, please try again.')
             await interaction.message.delete()
         else:
@@ -247,7 +247,7 @@ class AdmissionMessage(discord.ui.View):
 # Send application view
 class ApplicationMessage(discord.ui.View):
     async def interaction_check(self, interaction: discord.Interaction[discord.Client]) -> bool:
-        member = interaction.guild.get_member(interaction.user.id)
+        member = await interaction.guild.fetch_member(interaction.user.id)
         if bot.config['newcomer_role_id'] in [role.id for role in member.roles]:
             return True
         else:
@@ -412,7 +412,7 @@ class MapsRunView(discord.ui.View):
 @commands.has_permissions(administrator=True)
 @commands.has_role(bot.config['administrator_role_id'])
 async def maps_create(interaction: discord.Interaction, timestamp: str):
-    channel = await bot.get_channel(bot.config['events_channel_id'])
+    channel = await bot.fetch_channel(bot.config['events_channel_id'])
 
     # Check if the timestamp is valid
     try:
@@ -444,7 +444,7 @@ async def maps_create(interaction: discord.Interaction, timestamp: str):
 @commands.has_role(bot.config['administrator_role_id'])
 async def maps_list(interaction: discord.Interaction, message_id: int):
     # Fetch the message
-    channel = await bot.get_channel(bot.config['events_channel_id'])
+    channel = await bot.fetch_channel(bot.config['events_channel_id'])
     try:
         message = await channel.fetch_message(message_id)
     except discord.NotFound:
@@ -460,7 +460,7 @@ async def maps_list(interaction: discord.Interaction, message_id: int):
 
     # Fetch joined users
     joined_user_ids = maps_run[4].split(',')
-    joined_users = [interaction.guild.get_member(int(user_id)).mention for user_id in joined_user_ids if user_id]
+    joined_users = [await interaction.guild.fetch_member(int(user_id)).mention for user_id in joined_user_ids if user_id]
 
     # Create an embed with the joined users
     embed = discord.Embed(
