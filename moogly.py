@@ -42,12 +42,12 @@ class BotClient(commands.Bot):
         for maps_run in maps_runs:
             # Calculate time difference between current time and ping time
             current_time = datetime.now(timezone.utc)
-            ping_time = datetime.fromisoformat(maps_run[1]).replace(tzinfo=timezone.utc) - timedelta(minutes=20)
+            ping_time = datetime.fromisoformat(maps_run[2]).replace(tzinfo=timezone.utc) - timedelta(minutes=20)
             time_until_ping = (ping_time - current_time).total_seconds() / 60  # Convert to minutes
 
             if current_time >= ping_time:
                 # Fetch the joined users
-                joined_user_ids = maps_run[3].split(',')
+                joined_user_ids = maps_run[4].split(',')
                 joined_users = [f"<@{user_id}>" for user_id in joined_user_ids if user_id]
 
                 # Create an embed with the ping message
@@ -353,7 +353,7 @@ class MapsRunView(discord.ui.View):
         maps_run = bot.db_cursor.fetchone()
         joined_user_ids = maps_run[0].split(',')
         joined_users = [f"<@{user_id}>" for user_id in joined_user_ids if user_id]
-    
+
         self.embed = discord.Embed(
             title="Next maps run",
             description=f"Next maps run in {self.timestamp}\nWho's in? 💰\nCurrently available slots: {self.available_slots} / 8\n\nJoined users:\n" + "\n".join(joined_users),
@@ -368,12 +368,12 @@ class MapsRunView(discord.ui.View):
         maps_run = bot.db_cursor.fetchone()
 
         if maps_run:
-            user_ids = maps_run[3].split(',')
+            user_ids = maps_run[4].split(',')
             if str(user_id) not in user_ids:
                 if self.available_slots > 0:
                     # Calculate time difference between current time and map run time
                     current_time = datetime.now(timezone.utc)
-                    map_run_time = datetime.fromtimestamp(maps_run[2], tz=timezone.utc)
+                    map_run_time = datetime.fromtimestamp(maps_run[3], tz=timezone.utc)
                     time_until_map_run = (map_run_time - current_time).total_seconds() / 60  # Convert to minutes
 
                     if time_until_map_run > 20:
@@ -443,7 +443,7 @@ async def maps_list(interaction: discord.Interaction, message_id: int):
         return
 
     # Fetch joined users
-    joined_user_ids = maps_run[3].split(',')
+    joined_user_ids = maps_run[4].split(',')
     joined_users = [interaction.guild.get_member(int(user_id)).mention for user_id in joined_user_ids if user_id]
 
     # Create an embed with the joined users
