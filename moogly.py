@@ -29,7 +29,6 @@ class BotClient(commands.Bot):
         )
 
     async def setup_hook(self):
-        self.ping_task.start()
         self.add_view(AdmissionMessage(timeout=None))
         print('Registered persistent view: AdmissionMessage')
         self.add_view(ApplicationMessage(timeout=None))
@@ -48,6 +47,7 @@ class BotClient(commands.Bot):
         return await super().setup_hook()
 
     async def on_ready(self):
+        self.ping_task.start()
         print(f"Logged in as {self.user} (ID: {self.user.id})")
         print('------')
 
