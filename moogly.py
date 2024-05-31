@@ -45,9 +45,6 @@ class BotClient(commands.Bot):
             ping_time = datetime.fromisoformat(maps_run[1]).replace(tzinfo=timezone.utc) - timedelta(minutes=20)
             time_until_ping = (ping_time - current_time).total_seconds() / 60  # Convert to minutes
 
-            # Debug message
-            print(f"Time until ping for maps run {maps_run[0]}: {time_until_ping} minutes")
-
             if current_time >= ping_time:
                 # Fetch the joined users
                 joined_user_ids = maps_run[3].split(',')
@@ -81,6 +78,17 @@ class BotClient(commands.Bot):
         print('Registered persistent view: AdmissionMessage')
         self.add_view(ApplicationMessage(timeout=None))
         print('Registered persistent view: ApplicationMessage')
+
+        # Retrieve the message_id, discord_timestamp, and timestamp from the database
+        self.db_cursor.execute('SELECT message_id, discord_timestamp, timestamp, available_slots FROM maps_runs')
+        maps_runs = self.db_cursor.fetchall()
+
+        # Recreate the MapsRunView instance for each message_id
+        for message_id, discord_timestamp, timestamp, available_slots in maps_runs:
+            view = MapsRunView(message_id=int(message_id), timestamp=discord_timestamp, available_slots=available_slots)
+            self.add_view(view)
+            print(f'Registered persistent view: MapsRunView (message_id={message_id})')
+
         return await super().setup_hook()
 
     async def on_ready(self):
@@ -99,6 +107,7 @@ class BotClient(commands.Bot):
         self.db_cursor.execute('''
         CREATE TABLE IF NOT EXISTS maps_runs (
             message_id INTEGER PRIMARY KEY,
+            discord_timestamp TEXT,
             timestamp TIMESTAMP,
             available_slots INTEGER DEFAULT 8,
             user_ids TEXT,
@@ -330,7 +339,7 @@ async def translate_dyes_fr(interaction: discord.Interaction, *args):
 
     await interaction.channel.send(embed=embed)
 
-class MapRunView(discord.ui.View):
+class MapsRunView(discord.ui.View):
     def __init__(self, message_id, timestamp, available_slots):
         super().__init__(timeout=None)
         self.message_id = message_id
@@ -339,9 +348,15 @@ class MapRunView(discord.ui.View):
         self.update_embed()
 
     def update_embed(self):
+        # Fetch joined users
+        bot.db_cursor.execute('SELECT user_ids FROM maps_runs WHERE message_id=?', (self.message_id,))
+        maps_run = bot.db_cursor.fetchone()
+        joined_user_ids = maps_run[0].split(',')
+        joined_users = [f"<@{user_id}>" for user_id in joined_user_ids if user_id]
+    
         self.embed = discord.Embed(
             title="Next maps run",
-            description=f"Next maps run in {self.timestamp}\nWho's in? 💰\nCurrently available slots: {self.available_slots} / 8",
+            description=f"Next maps run in {self.timestamp}\nWho's in? 💰\nCurrently available slots: {self.available_slots} / 8\n\nJoined users:\n" + "\n".join(joined_users),
             color=0x00ff00
         )
 
@@ -351,22 +366,30 @@ class MapRunView(discord.ui.View):
 
         bot.db_cursor.execute('SELECT * FROM maps_runs WHERE message_id=?', (self.message_id,))
         maps_run = bot.db_cursor.fetchone()
-        
+
         if maps_run:
             user_ids = maps_run[3].split(',')
             if str(user_id) not in user_ids:
                 if self.available_slots > 0:
-                    user_ids.append(str(user_id))
-                    self.available_slots -= 1
-                    bot.db_cursor.execute(
-                        'UPDATE maps_runs SET user_ids=?, available_slots=? WHERE message_id=?',
-                        (','.join(user_ids), self.available_slots, self.message_id)
-                    )
-                    bot.db_conn.commit()
+                    # Calculate time difference between current time and map run time
+                    current_time = datetime.now(timezone.utc)
+                    map_run_time = datetime.fromtimestamp(maps_run[2], tz=timezone.utc)
+                    time_until_map_run = (map_run_time - current_time).total_seconds() / 60  # Convert to minutes
 
-                    self.update_embed()
-                    await interaction.message.edit(embed=self.embed, view=self)
-                    await interaction.response.send_message('You have successfully joined the map run! You will be pinged 20 minutes before the maps run starts.', ephemeral=True)
+                    if time_until_map_run > 20:
+                        user_ids.append(str(user_id))
+                        self.available_slots -= 1
+                        bot.db_cursor.execute(
+                            'UPDATE maps_runs SET user_ids=?, available_slots=? WHERE message_id=?',
+                            (','.join(user_ids), self.available_slots, self.message_id)
+                        )
+                        bot.db_conn.commit()
+
+                        self.update_embed()
+                        await interaction.message.edit(embed=self.embed, view=self)
+                        await interaction.response.send_message('You have successfully joined the map run! You will be pinged 20 minutes before the maps run starts.', ephemeral=True)
+                    else:
+                        await interaction.response.send_message('The map run is starting soon. You cannot join now.', ephemeral=True)
                 else:
                     await interaction.response.send_message('Sorry, no more available slots for this map run.', ephemeral=True)
             else:
@@ -379,30 +402,23 @@ class MapRunView(discord.ui.View):
 async def maps_create(interaction: discord.Interaction, timestamp: str):
     channel = bot.get_channel(bot.config['events_channel_id'])
 
-    # Extract timestamp from the Discord format string
-    timestamp_split = int(timestamp.split(':')[1].split(':')[0])
-
-    # Convert the timestamp to a Python datetime object
-    timestamp_dt = datetime.fromtimestamp(timestamp_split, tz=timezone.utc)
-
-    # Convert the datetime object to a string in the desired format
-    timestamp_str = timestamp_dt.strftime('%Y-%m-%d %H:%M:%S')
-
     # Check if the timestamp is valid
-    if timestamp_dt is None:
+    try:
+        timestamp_dt = datetime.fromtimestamp(int(timestamp.split(':')[1].split(':')[0]), tz=timezone.utc)
+    except ValueError:
         await interaction.channel.send('Invalid timestamp format. Please use the correct Discord timestamp format.')
         return
 
-    view = MapRunView(message_id=None, timestamp=timestamp, available_slots=8)
+    view = MapsRunView(message_id=None, timestamp=timestamp, available_slots=8)
     message = await channel.send(embed=view.embed, view=view)
-    
+
     # Update the message_id in the view
     view.message_id = message.id
 
     # Store the message info in the database
     bot.db_cursor.execute(
-        'INSERT INTO maps_runs (message_id, timestamp, available_slots, user_ids, pinged) VALUES (?, ?, ?, ?, ?)',
-        (message.id, timestamp_dt, 8, '', 0)
+        'INSERT INTO maps_runs (message_id, discord_timestamp, timestamp, available_slots, user_ids, pinged) VALUES (?, ?, ?, ?, ?, ?)',
+        (int(message.id), timestamp, timestamp_dt.timestamp(), 8, '', 0)
     )
     bot.db_conn.commit()
 
