@@ -21,7 +21,6 @@ class BotClient(commands.Bot):
         self.config = config
 
         self.dyes_fr = dyes_fr
-        self.ping_task.start()
 
         super().__init__(
             command_prefix=commands.when_mentioned_or(config['prefix']),
@@ -31,7 +30,6 @@ class BotClient(commands.Bot):
 
     @tasks.loop(minutes=1.0)
     async def ping_task(self):
-        await self.wait_until_ready()
         print('Checking for maps to ping...')
         # Fetch maps runs that have not been pinged yet
         self.db_cursor.execute('SELECT * FROM maps_runs WHERE pinged=0')
@@ -99,6 +97,7 @@ class BotClient(commands.Bot):
         return await super().setup_hook()
 
     async def on_ready(self):
+        self.ping_task.start()
         print(f"Logged in as {self.user} (ID: {self.user.id})")
         print('------')
 
