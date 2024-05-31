@@ -113,8 +113,8 @@ class BotClient(commands.Bot):
                         self.db_cursor.execute('UPDATE maps_runs SET pinged=1 WHERE message_id=?', (message_id,))
                         self.db_conn.commit()
 
-                    except discord.NotFound:
-                        pass
+                    except Exception as e:
+                        print(e)
                 else:
                     print('channel not found!')
 
