@@ -107,8 +107,7 @@ class BotClient(commands.Bot):
                 if channel:
                     try:
                         print('pinging map')
-                        message = await channel.fetch_message(message_id)
-                        await message.channel.send(f"<@&{self.config['maps_notifications_role_id']}> ", embed=embed)
+                        await channel.send(f"<@&{self.config['maps_notifications_role_id']}> ", embed=embed)
 
                         # Update the pinged status to true
                         self.db_cursor.execute('UPDATE maps_runs SET pinged=1 WHERE message_id=?', (message_id,))
