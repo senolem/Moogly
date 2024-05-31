@@ -88,6 +88,7 @@ class BotClient(commands.Bot):
             # Calculate time difference between current time and ping time
             current_time = datetime.now(timezone.utc)
             ping_time = datetime.fromtimestamp(maps_run[2], tz=timezone.utc) - timedelta(minutes=20)
+            print(f"current time {current_time} ping_time{ping_time}")
             time_until_ping = (ping_time - current_time).total_seconds() / 60  # Convert to minutes
 
             # Debug message
