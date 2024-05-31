@@ -35,6 +35,7 @@ class BotClient(commands.Bot):
         maps_runs = bot.db_cursor.fetchall()
 
         if not maps_runs:
+            print('No maps to ping right now...')
             return
 
         current_time = datetime.now(timezone.utc)
