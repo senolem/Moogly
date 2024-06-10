@@ -251,7 +251,7 @@ class ApplicationMessage(discord.ui.View):
         else:
             await interaction.response.send_message('You already sent an application, please wait until an administrator reviews it.', ephemeral=True)
 
-    @discord.ui.button(label='FC Friend', style=discord.ButtonStyle.green, custom_id='ApplicationMessage:fc_friend_button', emoji=discord.PartialEmoji.from_str('<:wave:>'))
+    @discord.ui.button(label='FC Friend', style=discord.ButtonStyle.green, custom_id='ApplicationMessage:fc_friend_button', emoji=discord.PartialEmoji.from_str('👋'))
     async def fc_friend_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         bot.db_cursor.execute('SELECT * FROM applications WHERE user_id=?', (interaction.user.id,))
         application = bot.db_cursor.fetchone()
