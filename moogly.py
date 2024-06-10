@@ -188,10 +188,8 @@ class AdmissionMessage(discord.ui.View):
         if user:
             if application[1] == 'Seventh Haven':
                 role = interaction.guild.get_role(bot.config['seventh_haven_role_id'])
-            elif application[1] == 'Moon':
-                role = interaction.guild.get_role(bot.config['moon_role_id'])
-            elif application[1] == 'ONE':
-                role = interaction.guild.get_role(bot.config['one_role_id'])
+            elif application[1] == 'FC Friend':
+                role = interaction.guild.get_role(bot.config['fc_friend_role_id'])
             newcomer_role = interaction.guild.get_role(bot.config['newcomer_role_id'])
 
             bot.db_cursor.execute('DELETE FROM applications WHERE user_id=?', (user_id,))
@@ -253,23 +251,13 @@ class ApplicationMessage(discord.ui.View):
         else:
             await interaction.response.send_message('You already sent an application, please wait until an administrator reviews it.', ephemeral=True)
 
-    @discord.ui.button(label='Moon', style=discord.ButtonStyle.green, custom_id='ApplicationMessage:moon_button', emoji=discord.PartialEmoji.from_str('<:moon:1241086139558002738>'))
-    async def moon_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(label='FC Friend', style=discord.ButtonStyle.green, custom_id='ApplicationMessage:fc_friend_button', emoji=discord.PartialEmoji.from_str('<:wave:>'))
+    async def fc_friend_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         bot.db_cursor.execute('SELECT * FROM applications WHERE user_id=?', (interaction.user.id,))
         application = bot.db_cursor.fetchone()
 
         if not application:
-            await interaction.response.send_modal(ApplicationModal('Moon'))
-        else:
-            await interaction.response.send_message('You already sent an application, please wait until an administrator reviews it.', ephemeral=True)
-    
-    @discord.ui.button(label='ONE', style=discord.ButtonStyle.red, custom_id='ApplicationMessage:one_button', emoji=discord.PartialEmoji.from_str('<:one:1241086126140166164>'))
-    async def one_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        bot.db_cursor.execute('SELECT * FROM applications WHERE user_id=?', (interaction.user.id,))
-        application = bot.db_cursor.fetchone()
-
-        if not application:
-            await interaction.response.send_modal(ApplicationModal('ONE'))
+            await interaction.response.send_modal(ApplicationModal('FC Friend'))
         else:
             await interaction.response.send_message('You already sent an application, please wait until an administrator reviews it.', ephemeral=True)
 
@@ -278,7 +266,7 @@ class ApplicationMessage(discord.ui.View):
 @commands.has_permissions(administrator=True)
 @commands.has_role(bot.config['administrator_role_id'])
 async def application_form(interaction: discord.Interaction):
-    await interaction.channel.send('Which FC are you member of?', view=ApplicationMessage())
+    await interaction.channel.send('Where are you from?', view=ApplicationMessage())
 
 # Clear all applications | !application_clear
 @bot.command()
