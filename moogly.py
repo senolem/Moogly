@@ -35,12 +35,12 @@ class BotClient(commands.Bot):
         print('Registered persistent view: ApplicationMessage')
 
         # Retrieve the message_id, discord_timestamp, and timestamp from the database
-        self.db_cursor.execute('SELECT message_id, discord_timestamp, timestamp, available_slots FROM maps_runs')
+        self.db_cursor.execute('SELECT message_id, discord_timestamp, timestamp, message, available_slots FROM maps_runs')
         maps_runs = self.db_cursor.fetchall()
 
         # Recreate the MapsRunView instance for each message_id
-        for message_id, discord_timestamp, timestamp, available_slots in maps_runs:
-            view = MapsRunView(message_id=int(message_id), timestamp=discord_timestamp, available_slots=available_slots)
+        for message_id, discord_timestamp, timestamp, message, available_slots in maps_runs:
+            view = MapsRunView(message_id=int(message_id), timestamp=discord_timestamp, message=message, available_slots=available_slots)
             self.add_view(view)
             print(f"Registered persistent view: MapsRunView (message_id={message_id})")
 
@@ -64,6 +64,7 @@ class BotClient(commands.Bot):
             message_id INTEGER PRIMARY KEY,
             discord_timestamp TEXT,
             timestamp TIMESTAMP,
+            message TEXT,
             available_slots INTEGER DEFAULT 8,
             user_ids TEXT,
             pinged INTEGER DEFAULT 0
@@ -94,7 +95,7 @@ class BotClient(commands.Bot):
 
                 # Create an embed with the ping message
                 embed = discord.Embed(
-                    title="Maps Run Reminder",
+                    title="Treasure Maps run reminder 🚨",
                     description=f"The maps run will start in 20 minutes. Are you ready?\n\nJoined Users:\n" + "\n".join(joined_users),
                     color=0xff8a08
                 )
@@ -328,10 +329,11 @@ async def translate_dyes_fr(interaction: discord.Interaction, *args):
     await interaction.channel.send(embed=embed)
 
 class MapsRunView(discord.ui.View):
-    def __init__(self, message_id, timestamp, available_slots):
+    def __init__(self, message_id, timestamp, message, available_slots):
         super().__init__(timeout=None)
         self.message_id = message_id
         self.timestamp = timestamp
+        self.message = message
         self.available_slots = available_slots
         self.embed = discord.Embed()
         self.update_embed()
@@ -349,8 +351,8 @@ class MapsRunView(discord.ui.View):
             joined_users_description = ""
 
         self.embed = discord.Embed(
-            title="Next maps run",
-            description=f"Next maps run on {self.timestamp}\nWho's in? 💰\nCurrently available slots: {self.available_slots} / 8{joined_users_description}",
+            title="Treasure Maps run 🧭",
+            description=f"{self.message}\nNext maps run on {self.timestamp}\nWho's in? 💰\nCurrently available slots: {self.available_slots} / 8{joined_users_description}",
             color=0xffc100
         )
 
@@ -388,7 +390,7 @@ class MapsRunView(discord.ui.View):
 @bot.command()
 @commands.has_permissions(administrator=True)
 @commands.has_role(bot.config['administrator_role_id'])
-async def maps_create(interaction: discord.Interaction, timestamp: str):
+async def maps_create(interaction: discord.Interaction, timestamp: str, *args):
     channel = await bot.fetch_channel(bot.config['events_channel_id'])
 
     # Check if the timestamp is valid
@@ -398,7 +400,13 @@ async def maps_create(interaction: discord.Interaction, timestamp: str):
         await interaction.channel.send('Invalid timestamp format. Please use the correct Discord timestamp format.')
         return
 
-    view = MapsRunView(message_id=None, timestamp=timestamp, available_slots=8)
+    # Reassemble the message after the timestamp
+    message = ' '.join(args)
+
+    # Enforce the timestamp to be in full format by replacing characters after the last ':' with 'F'
+    new_timestamp = f"{timestamp.rsplit(':', 1)[0]}:F"
+
+    view = MapsRunView(message_id=None, timestamp=new_timestamp, message=message, available_slots=8)
     message = await channel.send(f"<@&{bot.config['maps_notifications_role_id']}>", embed=view.embed, view=view)
 
     # Update the message_id in the view
@@ -406,8 +414,8 @@ async def maps_create(interaction: discord.Interaction, timestamp: str):
 
     # Store the message info in the database
     bot.db_cursor.execute(
-        'INSERT INTO maps_runs (message_id, discord_timestamp, timestamp, available_slots, user_ids, pinged) VALUES (?, ?, ?, ?, ?, ?)',
-        (int(message.id), timestamp, timestamp_dt.timestamp(), 8, '', 0)
+        'INSERT INTO maps_runs (message_id, discord_timestamp, timestamp, message, available_slots, user_ids, pinged) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        (int(message.id), timestamp, message, timestamp_dt.timestamp(), 8, '', 0)
     )
     bot.db_conn.commit()
 
