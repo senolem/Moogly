@@ -403,12 +403,12 @@ async def maps_create(interaction: discord.Interaction, timestamp: str, *args):
         return
 
     # Reassemble the message after the timestamp
-    message = ' '.join(args)
+    msg = ' '.join(args)
 
     # Enforce the timestamp to be in full format by replacing characters after the last ':' with 'F'
     new_timestamp = f"{timestamp.rsplit(':', 1)[0]}:F>"
 
-    view = MapsRunView(message_id=None, timestamp=new_timestamp, message=message, available_slots=8)
+    view = MapsRunView(message_id=None, timestamp=new_timestamp, message=msg, available_slots=8)
     message = await channel.send(f"<@&{bot.config['maps_notifications_role_id']}>", embed=view.embed, view=view)
 
     # Update the message_id in the view
@@ -417,7 +417,7 @@ async def maps_create(interaction: discord.Interaction, timestamp: str, *args):
     # Store the message info in the database
     bot.db_cursor.execute(
         'INSERT INTO maps_runs (message_id, discord_timestamp, timestamp, message, available_slots, user_ids, pinged) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        (int(message.id), timestamp, message, timestamp_dt.timestamp(), 8, '', 0)
+        (int(message.id), timestamp, msg, timestamp_dt.timestamp(), 8, '', 0)
     )
     bot.db_conn.commit()
 
