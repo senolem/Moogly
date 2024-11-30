@@ -90,7 +90,7 @@ class BotClient(commands.Bot):
 
             if current_time >= ping_time:
                 # Fetch the joined users
-                joined_user_ids = maps_run[4].split(',')
+                joined_user_ids = maps_run[5].split(',')
                 joined_users = [f"<@{user_id}>" for user_id in joined_user_ids if user_id]
 
                 # Create an embed with the ping message
@@ -366,10 +366,10 @@ class MapsRunView(discord.ui.View):
         maps_run = bot.db_cursor.fetchone()
 
         if maps_run:
-            user_ids = maps_run[4].split(',')
+            user_ids = maps_run[5].split(',')
             if str(user_id) not in user_ids:
                 if self.available_slots > 0:
-                    if maps_run[5] == 0: # Check if ping was already sent, meaning that the map will be running soon
+                    if maps_run[6] == 0: # Check if ping was already sent, meaning that the map will be running soon
                         user_ids.append(str(user_id))
                         self.available_slots -= 1
                         bot.db_cursor.execute(
@@ -446,7 +446,7 @@ async def maps_list(interaction: discord.Interaction, message_id: int):
         return
 
     # Fetch joined users
-    joined_user_ids = maps_run[4].split(',')
+    joined_user_ids = maps_run[5].split(',')
     joined_users = [await interaction.guild.fetch_member(int(user_id)).mention for user_id in joined_user_ids if user_id]
 
     # Create an embed with the joined users
