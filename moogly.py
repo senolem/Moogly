@@ -406,7 +406,7 @@ async def maps_create(interaction: discord.Interaction, timestamp: str, *args):
     message = ' '.join(args)
 
     # Enforce the timestamp to be in full format by replacing characters after the last ':' with 'F'
-    new_timestamp = f"{timestamp.rsplit(':', 1)[0]}:F"
+    new_timestamp = f"{timestamp.rsplit(':', 1)[0]}:F>"
 
     view = MapsRunView(message_id=None, timestamp=new_timestamp, message=message, available_slots=8)
     message = await channel.send(f"<@&{bot.config['maps_notifications_role_id']}>", embed=view.embed, view=view)
