@@ -354,7 +354,7 @@ class MapsRunView(discord.ui.View):
 
         self.embed = discord.Embed(
             title="Treasure Maps run 🧭",
-            description=f"{self.message}\nNext maps run on {self.timestamp}\nWho's in? 💰\nCurrently available slots: {self.available_slots} / 8{joined_users_description}",
+            description=f"{self.message}\nNext maps run on {self.timestamp}\nWho's in? 💰\nCurrently available slots: **{self.available_slots} / 8{joined_users_description}**",
             color=0xffc100
         )
 
