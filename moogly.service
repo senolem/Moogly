@@ -1,0 +1,12 @@
+[Unit]
+Description=Moogly
+After=network.target
+
+[Service]
+Type=idle
+Restart=on-failure
+User=root
+ExecStart=/bin/bash -c 'cd /home/melones/Moogly && python3 moogly.py'
+
+[Install]
+WantedBy=multi-user.target
