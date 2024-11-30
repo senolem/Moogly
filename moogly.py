@@ -331,11 +331,11 @@ async def translate_dyes_fr(interaction: discord.Interaction, *args):
     await interaction.channel.send(embed=embed)
 
 class MapsRunView(discord.ui.View):
-    def __init__(self, message_id, timestamp, message, available_slots):
+    def __init__(self, message_id, timestamp, description, available_slots):
         super().__init__(timeout=None)
         self.message_id = message_id
         self.timestamp = timestamp
-        self.message = message
+        self.description = description
         self.available_slots = available_slots
         self.embed = discord.Embed()
         self.update_embed()
@@ -354,7 +354,7 @@ class MapsRunView(discord.ui.View):
 
         self.embed = discord.Embed(
             title="Treasure Maps run 🧭",
-            description=f"{self.message}\nNext maps run on {self.timestamp}\nWho's in? 💰\nCurrently available slots: **{self.available_slots} / 8{joined_users_description}**",
+            description=f"{self.description}\nNext maps run on {self.timestamp}\nWho's in? 💰\nCurrently available slots: **{self.available_slots} / 8{joined_users_description}**",
             color=0xffc100
         )
 
@@ -417,7 +417,7 @@ async def maps_create(interaction: discord.Interaction, timestamp: str, *args):
     # Store the message info in the database
     bot.db_cursor.execute(
         'INSERT INTO maps_runs (message_id, discord_timestamp, timestamp, message, available_slots, user_ids, pinged) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        (int(message.id), timestamp, msg, timestamp_dt.timestamp(), 8, '', 0)
+        (int(message.id), new_timestamp, timestamp_dt.timestamp(), msg, 8, '', 0)
     )
     bot.db_conn.commit()
 
