@@ -1,7 +1,10 @@
 FROM python:3.11-slim
-
 WORKDIR /moogly
-RUN apt-get update && apt-get install git -y
-COPY entry.sh ./entry.sh
 
-CMD ["/bin/bash", "entry.sh"]
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+COPY moogly.py .
+COPY dyes_fr.json .
+
+ENTRYPOINT ["python3", "moogly.py"]
