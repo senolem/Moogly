@@ -1,9 +1,7 @@
 FROM python:3.11-slim
 WORKDIR /moogly
 
-COPY requirements.txt .
-COPY moogly.py .
-COPY dyes_fr.json .
+git clone https://github.com/senolem/Moogly
 
 RUN pip install -r requirements.txt
 
