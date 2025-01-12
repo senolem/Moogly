@@ -7,4 +7,4 @@ RUN pip install -r requirements.txt
 COPY moogly.py .
 COPY dyes_fr.json .
 
-ENTRYPOINT python3 moogly.py
+ENTRYPOINT python3 /moogly/moogly.py
