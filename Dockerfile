@@ -7,4 +7,4 @@ RUN pip install -r requirements.txt
 COPY moogly.py .
 COPY dyes_fr.json .
 
-ENTRYPOINT ["tail", "-f", "/dev/null"]
+ENTRYPOINT ["python3", "moogly.py"]
