@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>Moogly</Name>
+  <Repository>melones/moogly:latest</Repository>
+  <Registry>https://github.com/senolem/moogly</Registry>
+  <Network>nas</Network>
+  <MyIP/>
+  <Shell>bash</Shell>
+  <Privileged>false</Privileged>
+  <Overview>Moogly FC Bot</Overview>
+  <WebUI/>
+  <TemplateURL/>
+  <Icon>https://raw.githubusercontent.com/ich777/docker-templates/master/ich777/images/valheim.png</Icon>
+  <ExtraParams>--restart=unless-stopped</ExtraParams>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled>1735568335</DateInstalled>
+  <Requires/>
+  <Config Name="Moogly" Target="/moogly" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/moogly</Config>
+</Container>
