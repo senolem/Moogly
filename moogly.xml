@@ -16,5 +16,5 @@
   <CPUset/>
   <DateInstalled>1735568335</DateInstalled>
   <Requires/>
-  <Config Name="Moogly" Target="/moogly" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/moogly</Config>
+  <Config Name="Moogly" Target="/moogly" Default="" Mode="rw" Description="" Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/moogly/</Config>
 </Container>
