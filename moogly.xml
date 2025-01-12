@@ -10,7 +10,7 @@
   <Overview>Moogly FC Bot</Overview>
   <WebUI/>
   <TemplateURL/>
-  <Icon>https://raw.githubusercontent.com/ich777/docker-templates/master/ich777/images/valheim.png</Icon>
+  <Icon>https://github.com/senolem/Moogly/blob/main/assets/moogly.png</Icon>
   <ExtraParams>--restart=unless-stopped</ExtraParams>
   <PostArgs/>
   <CPUset/>
