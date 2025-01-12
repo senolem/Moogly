@@ -118,7 +118,7 @@ class BotClient(commands.Bot):
 # Load config from config.json file
 def load_config():
     dir = os.path.dirname(os.path.realpath(__file__))
-    config_path = os.path.join(dir, 'config.json')
+    config_path = os.path.join(dir, '/config/config.json')
     with open(config_path, 'r') as f:
         return json.load(f)
 
